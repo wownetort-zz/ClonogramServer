@@ -34,14 +34,14 @@ namespace Clonogram.Repositories
                 Connection = conn,
                 CommandText =
                     @"insert into photos (id, user_id, description, geo, image_path, image_size, date_updated, date_created)
-                                        values(@p_id, @user_id, @description, @geo, @image_path, @image_size, @p_date_updated, @p_date_created)"
+                                        values(@p_id, @p_user_id, @p_description, @p_geo, @p_image_path, @p_image_size, @p_date_updated, @p_date_created)"
             };
             cmd.Parameters.AddWithValue("p_id", photo.Id);
-            cmd.Parameters.AddWithValue("user_id", photo.UserId);
-            cmd.Parameters.AddWithValue("description", photo.Description);
-            cmd.Parameters.AddWithValue("geo", photo.Geo);
-            cmd.Parameters.AddWithValue("image_path", photo.ImagePath);
-            cmd.Parameters.AddWithValue("image_size", photo.ImageSize);
+            cmd.Parameters.AddWithValue("p_user_id", photo.UserId);
+            cmd.Parameters.AddWithValue("p_description", photo.Description);
+            cmd.Parameters.AddWithValue("p_geo", photo.Geo);
+            cmd.Parameters.AddWithValue("p_image_path", photo.ImagePath);
+            cmd.Parameters.AddWithValue("p_image_size", photo.ImageSize);
             cmd.Parameters.AddWithValue("p_date_updated", DateTime.Now);
             cmd.Parameters.AddWithValue("p_date_created", DateTime.Now);
 
@@ -56,10 +56,10 @@ namespace Clonogram.Repositories
             {
                 Connection = conn,
                 CommandText =
-                    @"update photos set description = @description, date_updated = @date_updated where id = @p_id"
+                    @"update photos set description = @p_description, date_updated = @p_date_updated where id = @p_id"
             };
             cmd.Parameters.AddWithValue("p_id", photo.Id);
-            cmd.Parameters.AddWithValue("description", photo.Description);
+            cmd.Parameters.AddWithValue("p_description", photo.Description);
             cmd.Parameters.AddWithValue("p_date_updated", DateTime.Now);
 
             await cmd.ExecuteNonQueryAsync();

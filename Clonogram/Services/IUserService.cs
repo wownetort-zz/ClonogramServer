@@ -10,7 +10,7 @@ namespace Clonogram.Services
         Task<UserView> Authenticate(string username, string password);
         Task<IEnumerable<string>> GetAllUsernames();
         Task<UserView> GetById(Guid id);
-        Task<UserView> Create(string username, string password);
+        Task Create(UserView userView);
         Task Update(UserView userView);
         Task Delete(Guid id);
     }

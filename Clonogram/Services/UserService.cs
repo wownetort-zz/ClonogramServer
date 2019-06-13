@@ -48,50 +48,46 @@ namespace Clonogram.Services
             return userView;
         }
 
-        public async Task<UserView> Create(string username, string password)
+        public async Task Create(UserView userView)
         {
-            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Password is required");
-            if (await _usersRepository.GetUserByName(username) != null) throw new ArgumentException("Username \"" + username + "\" is already taken");
+            if (string.IsNullOrWhiteSpace(userView.Password)) throw new ArgumentException("Password is required");
+            if (await _usersRepository.GetUserByName(userView.Username) != null) throw new ArgumentException("Username \"" + userView.Username + "\" is already taken");
 
-            _cryptographyService.CreatePasswordHash(password, out var passwordHash, out var passwordSalt);
-            var user = new User
-            {
-                Username = username,
-                PasswordHash = passwordHash,
-                PasswordSalt = passwordSalt,
-                Id = NewId.Next().ToGuid()
-            };
+            _cryptographyService.CreatePasswordHash(userView.Password, out var passwordHash, out var passwordSalt);
+
+            userView.Id = NewId.Next().ToGuid().ToString();
+            var user = _mapper.Map<User>(userView);
+            user.PasswordHash = passwordHash;
+            user.PasswordSalt = passwordSalt;
             await _usersRepository.AddUser(user);
-
-            var userView = _mapper.Map<UserView>(user);
-            return userView;
         }
 
         public async Task Update(UserView userView)
         {
-            var user = await _usersRepository.GetUserByName(userView.Username);
+            var user = _mapper.Map<User>(userView);
+            var userDB = await _usersRepository.GetUserById(user.Id);
 
-            if (user == null) throw new ArgumentException("User not found");
+            if (userDB == null) throw new ArgumentException("User not found");
 
-            if (userView.Username != user.Username)
+            if (userDB.Username != user.Username)
             {
-                if (await _usersRepository.GetUserByName(userView.Username) != null) throw new ArgumentException("Username \"" + user.Username + "\" is already taken");
+                if (await _usersRepository.GetUserByName(user.Username) != null) throw new ArgumentException("Username \"" + user.Username + "\" is already taken");
             }
 
-            user.FirstName = userView.FirstName;
-            user.LastName = userView.LastName;
-            user.Username = userView.Username;
-            user.Description = userView.Description;
-            user.Email = userView.Email;
+            userDB.FirstName = userView.FirstName;
+            userDB.LastName = userView.LastName;
+            userDB.Username = userView.Username;
+            userDB.Description = userView.Description;
+            userDB.Email = userView.Email;
 
             if (!string.IsNullOrWhiteSpace(userView.Password))
             {
                 _cryptographyService.CreatePasswordHash(userView.Password, out var passwordHash, out var passwordSalt);
-                user.PasswordHash = passwordHash;
-                user.PasswordSalt = passwordSalt;
+                userDB.PasswordHash = passwordHash;
+                userDB.PasswordSalt = passwordSalt;
             }
 
-            await _usersRepository.UpdateUser(user);
+            await _usersRepository.UpdateUser(userDB);
         }
 
         public async Task Delete(Guid id)

@@ -28,7 +28,7 @@ namespace Clonogram.Helpers
                 Id = reader.GetGuid(reader.GetOrdinal("id")),
                 Description = reader.GetString(reader.GetOrdinal("description")),
                 UserId = reader.GetGuid(reader.GetOrdinal("user_id")),
-                Geo = NpgsqlPoint.Parse(reader.GetString(reader.GetOrdinal("geo"))),
+                Geo = (NpgsqlPoint)reader["geo"],
                 ImageSize = reader.GetInt32(reader.GetOrdinal("image_size")),
                 ImagePath = reader.GetString(reader.GetOrdinal("image_path")),
             };

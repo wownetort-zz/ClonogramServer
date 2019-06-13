@@ -40,7 +40,7 @@ namespace Clonogram.Controllers
         {
             try
             {
-                photoView.Id = HttpContext.User.Identity.Name;
+                photoView.UserId = HttpContext.User.Identity.Name;
                 await _photoService.Update(photoView);
                 return Ok();
             }

@@ -21,9 +21,9 @@ namespace Clonogram.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Authenticate(UserView userView)
+        public async Task<IActionResult> Authenticate(string username, string password)
         {
-            var user = await _userService.Authenticate(userView.Username, userView.Password);
+            var user = await _userService.Authenticate(username, password);
             if (user == null) return BadRequest(new { message = "Username or password is incorrect" });
 
             var tokenString = _jwtService.GetToken(user.Id);
@@ -36,18 +36,12 @@ namespace Clonogram.Controllers
         }
 
         [AllowAnonymous]
-        public IActionResult Test()
-        {
-            return Ok();
-        }
-
-        [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Register(string username, string password)
+        public async Task<IActionResult> Register(UserView userview)
         {
             try
             {
-                await _userService.Create(username, password);
+                await _userService.Create(userview);
                 return Ok();
             }
             catch (ArgumentException ex)
