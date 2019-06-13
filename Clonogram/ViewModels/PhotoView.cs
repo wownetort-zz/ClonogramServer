@@ -1,4 +1,6 @@
-﻿namespace Clonogram.ViewModels
+﻿using System;
+
+namespace Clonogram.ViewModels
 {
     public class PhotoView
     {
@@ -9,5 +11,6 @@
         public double Longitude { get; set; }
         public string ImagePath { get; set; }
         public int ImageSize { get; set; }
+        public DateTime DateCreated { get; set; }
     }
 }

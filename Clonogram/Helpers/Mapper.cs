@@ -24,6 +24,15 @@ namespace Clonogram.Helpers
                 .ForMember("Id", x => x.MapFrom(y => Guid.Parse(y.Id)))
                 .ForMember("UserId", x => x.MapFrom(y => Guid.Parse(y.UserId)))
                 .ForMember("Geo", x => x.MapFrom(y => new NpgsqlPoint(y.Longitude, y.Latitude)));
+
+            CreateMap<Comment, CommentView>()
+                .ForMember("Id", x => x.MapFrom(y => y.Id.ToString()))
+                .ForMember("UserId", x => x.MapFrom(y => y.UserId.ToString()))
+                .ForMember("PhotoId", x => x.MapFrom(y => y.PhotoId.ToString()));
+            CreateMap<CommentView, Comment>()
+                .ForMember("Id", x => x.MapFrom(y => Guid.Parse(y.Id)))
+                .ForMember("UserId", x => x.MapFrom(y => Guid.Parse(y.UserId)))
+                .ForMember("PhotoId", x => x.MapFrom(y => Guid.Parse(y.PhotoId)));
         }
     }
 }

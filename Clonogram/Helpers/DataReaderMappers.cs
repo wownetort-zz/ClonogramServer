@@ -31,6 +31,19 @@ namespace Clonogram.Helpers
                 Geo = (NpgsqlPoint)reader["geo"],
                 ImageSize = reader.GetInt32(reader.GetOrdinal("image_size")),
                 ImagePath = reader.GetString(reader.GetOrdinal("image_path")),
+                DateCreated = reader.GetDateTime(reader.GetOrdinal("date_created")),
+            };
+        }
+
+        public static Comment MapToComment(DbDataReader reader)
+        {
+            return new Comment()
+            {
+                Id = reader.GetGuid(reader.GetOrdinal("id")),
+                PhotoId = reader.GetGuid(reader.GetOrdinal("photo_id")),
+                UserId = reader.GetGuid(reader.GetOrdinal("user_id")),
+                Text = reader.GetString(reader.GetOrdinal("text")),
+                DateCreated = reader.GetDateTime(reader.GetOrdinal("date_created")),
             };
         }
     }

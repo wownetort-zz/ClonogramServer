@@ -11,5 +11,6 @@ namespace Clonogram.Models
         public NpgsqlPoint Geo { get; set; }
         public string ImagePath { get; set; }
         public int ImageSize { get; set; }
+        public DateTime DateCreated { get; set; }
     }
 }

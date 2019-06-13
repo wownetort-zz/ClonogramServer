@@ -40,9 +40,11 @@ namespace Clonogram
             services.AddSingleton<ICryptographyService, CryptographyService>();
             services.AddSingleton<IPhotoService, PhotoService>();
             services.AddSingleton<IJWTService, JWTService>();
+            services.AddSingleton<ICommentService, CommentService>();
 
             services.AddSingleton<IUsersRepository, UsersRepository>();
             services.AddSingleton<IPhotoRepository, PhotoRepository>();
+            services.AddSingleton<ICommentRepository, CommentRepository>();
             services.AddSingleton<IAmazonS3Repository, AmazonS3Repository>();
         }
 

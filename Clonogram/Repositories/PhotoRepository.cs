@@ -16,7 +16,7 @@ namespace Clonogram.Repositories
             {
                 Connection = conn,
                 CommandText =
-                    @"select id, user_id, description, geo, image_path, image_size from photos where id = @p_id"
+                    @"select id, user_id, description, geo, image_path, image_size, date_created from photos where id = @p_id"
             };
             cmd.Parameters.AddWithValue("p_id", id);
             var reader = await cmd.ExecuteReaderAsync();

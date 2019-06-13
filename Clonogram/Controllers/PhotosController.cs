@@ -18,12 +18,12 @@ namespace Clonogram.Controllers
         }
 
         [HttpPost]
-        public IActionResult Upload(PhotoView photo)
+        public async Task<IActionResult> Upload(PhotoView photo)
         {
             var file = HttpContext.Request.Form.Files[0];
             photo.UserId = HttpContext.User.Identity.Name;
 
-            _photoService.Upload(file, photo);
+            await _photoService.Upload(file, photo);
 
             return Ok();
         }
