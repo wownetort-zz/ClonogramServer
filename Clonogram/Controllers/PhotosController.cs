@@ -23,6 +23,12 @@ namespace Clonogram.Controllers
             var photos = await _hashtagService.GetPhotos(hashtag);
             return Ok(photos);
         }
+        public async Task<IActionResult> GetLikesCount(string id)
+        {
+            var guid = Guid.Parse(id);
+            var likesCount = await _photoService.GetLikesCount(guid);
+            return Ok(likesCount);
+        }
 
         [HttpPost]
         public async Task<IActionResult> Upload(PhotoView photo)

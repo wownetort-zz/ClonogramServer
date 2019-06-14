@@ -13,5 +13,6 @@ namespace Clonogram.Services
         Task Update(PhotoView photoView);
         Task Like(Guid userId, Guid photoId);
         Task RemoveLike(Guid userId, Guid photoId);
+        Task<int> GetLikesCount(Guid photoId);
     }
 }

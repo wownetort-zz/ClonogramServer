@@ -12,5 +12,6 @@ namespace Clonogram.Repositories
         Task Delete(Guid id);
         Task Like(Guid userId, Guid photoId);
         Task RemoveLike(Guid userId, Guid photoId);
+        Task<int> GetLikesCount(Guid photoId);
     }
 }

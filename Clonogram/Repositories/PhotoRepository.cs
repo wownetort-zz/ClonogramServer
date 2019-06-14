@@ -110,5 +110,21 @@ namespace Clonogram.Repositories
 
             await cmd.ExecuteNonQueryAsync();
         }
+
+        public async Task<int> GetLikesCount(Guid photoId)
+        {
+            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            conn.Open();
+            using var cmd = new NpgsqlCommand
+            {
+                Connection = conn,
+                CommandText =
+                    @"select count(*) from photos_likes where photo_id = @p_photo_id"
+            };
+            cmd.Parameters.AddWithValue("p_photo_id", photoId);
+
+            var count = await cmd.ExecuteScalarAsync();
+            return int.Parse(count.ToString());
+        }
     }
 }

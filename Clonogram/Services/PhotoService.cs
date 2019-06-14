@@ -77,5 +77,10 @@ namespace Clonogram.Services
         {
             await _photoRepository.RemoveLike(userId, photoId);
         }
+
+        public async Task<int> GetLikesCount(Guid photoId)
+        {
+            return await _photoRepository.GetLikesCount(photoId);
+        }
     }
 }
