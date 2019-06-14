@@ -13,12 +13,14 @@ namespace Clonogram.Services
     {
         private readonly IPhotoRepository _photoRepository;
         private readonly IAmazonS3Repository _amazonS3Repository;
+        private readonly IHashtagService _hashtagService;
         private readonly IMapper _mapper;
 
-        public PhotoService(IPhotoRepository photoRepository, IAmazonS3Repository amazonS3Repository, IMapper mapper)
+        public PhotoService(IPhotoRepository photoRepository, IAmazonS3Repository amazonS3Repository, IHashtagService hashtagService, IMapper mapper)
         {
             _photoRepository = photoRepository;
             _amazonS3Repository = amazonS3Repository;
+            _hashtagService = hashtagService;
             _mapper = mapper;
         }
 
@@ -31,6 +33,7 @@ namespace Clonogram.Services
             photoModel.Id = photoId;
             photoModel.ImagePath = $"{Constants.ServiceURL}/{Constants.BucketName}/{photoId.ToString()}";
             await _photoRepository.Upload(photoModel);
+            await _hashtagService.AddNewHashtags(photoId, photoModel.Description);
         }
 
         public async Task Delete(Guid userId, Guid photoId)
@@ -62,6 +65,7 @@ namespace Clonogram.Services
 
             photoDB.Description = photo.Description;
             await _photoRepository.Update(photoDB);
+            await _hashtagService.AddNewHashtags(photoDB.Id, photoDB.Description);
         }
     }
 }

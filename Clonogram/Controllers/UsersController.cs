@@ -37,11 +37,11 @@ namespace Clonogram.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Register(UserView userview)
+        public async Task<IActionResult> Register(UserView userView)
         {
             try
             {
-                await _userService.Create(userview);
+                await _userService.Create(userView);
                 return Ok();
             }
             catch (ArgumentException ex)
