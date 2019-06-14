@@ -67,5 +67,15 @@ namespace Clonogram.Services
             await _photoRepository.Update(photoDB);
             await _hashtagService.AddNewHashtags(photoDB.Id, photoDB.Description);
         }
+
+        public async Task Like(Guid userId, Guid photoId)
+        {
+            await _photoRepository.Like(userId, photoId);
+        }
+
+        public async Task RemoveLike(Guid userId, Guid photoId)
+        {
+            await _photoRepository.RemoveLike(userId, photoId);
+        }
     }
 }

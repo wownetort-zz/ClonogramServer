@@ -78,5 +78,37 @@ namespace Clonogram.Repositories
 
             await cmd.ExecuteNonQueryAsync();
         }
+
+        public async Task Like(Guid userId, Guid photoId)
+        {
+            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            conn.Open();
+            using var cmd = new NpgsqlCommand
+            {
+                Connection = conn,
+                CommandText =
+                    @"insert into photos_likes (photo_id, user_id) values(@p_photo_id, @p_user_id) ON CONFLICT DO NOTHING"
+            };
+            cmd.Parameters.AddWithValue("p_photo_id", photoId);
+            cmd.Parameters.AddWithValue("p_user_id", userId);
+
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task RemoveLike(Guid userId, Guid photoId)
+        {
+            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            conn.Open();
+            using var cmd = new NpgsqlCommand
+            {
+                Connection = conn,
+                CommandText =
+                    @"delete from photos_likes where photo_id = @p_photo_id and user_id = @p_user_id"
+            };
+            cmd.Parameters.AddWithValue("p_photo_id", photoId);
+            cmd.Parameters.AddWithValue("p_user_id", userId);
+
+            await cmd.ExecuteNonQueryAsync();
+        }
     }
 }

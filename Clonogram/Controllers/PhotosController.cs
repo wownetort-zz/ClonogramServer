@@ -65,5 +65,27 @@ namespace Clonogram.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Like(string photoId)
+        {
+            var photoGuid = Guid.Parse(photoId);
+            var userId = Guid.Parse(HttpContext.User.Identity.Name);
+
+            await _photoService.Like(userId, photoGuid);
+
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RemoveLike(string photoId)
+        {
+            var photoGuid = Guid.Parse(photoId);
+            var userId = Guid.Parse(HttpContext.User.Identity.Name);
+
+            await _photoService.RemoveLike(userId, photoGuid);
+
+            return Ok();
+        }
     }
 }
