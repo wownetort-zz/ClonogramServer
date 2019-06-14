@@ -11,10 +11,17 @@ namespace Clonogram.Controllers
     public class PhotosController : ControllerBase
     {
         private readonly IPhotoService _photoService;
+        private readonly IHashtagService _hashtagService;
 
-        public PhotosController(IPhotoService photoService)
+        public PhotosController(IPhotoService photoService, IHashtagService hashtagService)
         {
             _photoService = photoService;
+            _hashtagService = hashtagService;
+        }
+        public async Task<IActionResult> GetPhotosByHashtag(string hashtag)
+        {
+            var photos = await _hashtagService.GetPhotos(hashtag);
+            return Ok(photos);
         }
 
         [HttpPost]

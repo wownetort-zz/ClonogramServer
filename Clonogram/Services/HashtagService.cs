@@ -18,6 +18,14 @@ namespace Clonogram.Services
             _regex = new Regex(@"(?<=#)\w+");
         }
 
+        public async Task<List<Guid>> GetPhotos(string hashtag)
+        {
+            var hashtagId = await _hashtagRepository.GetId(hashtag);
+            if (hashtagId == null) return new List<Guid>();
+
+            return await _hashtagRepository.GetPhotos(hashtagId.Value);
+        }
+
         public async Task AddNewHashtags(Guid photoId, string text)
         {
             await RemoveAll(photoId);

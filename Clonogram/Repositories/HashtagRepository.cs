@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Npgsql;
 
@@ -6,6 +7,27 @@ namespace Clonogram.Repositories
 {
     public class HashtagRepository : IHashtagRepository
     {
+        public async Task<List<Guid>> GetPhotos(Guid hashtagId)
+        {
+            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            conn.Open();
+            using var cmd = new NpgsqlCommand
+            {
+                Connection = conn,
+                CommandText = @"select photo_id from photos_hashtags where hashtag_id = @p_hashtag_id"
+            };
+            cmd.Parameters.AddWithValue("p_hashtag_id", hashtagId);
+            var reader = await cmd.ExecuteReaderAsync();
+
+            var photos = new List<Guid>();
+            while (await reader.ReadAsync())
+            {
+                photos.Add(reader.GetGuid(0));
+            }
+
+            return photos;
+        }
+
         public async Task<Guid?> GetId(string hashtag)
         {
             using var conn = new NpgsqlConnection(Constants.ConnectionString);
