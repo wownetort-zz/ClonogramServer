@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Clonogram.Helpers;
 using Clonogram.Models;
@@ -16,13 +17,34 @@ namespace Clonogram.Repositories
             {
                 Connection = conn,
                 CommandText =
-                    @"select id, user_id, description, geo, image_path, image_size, date_created from photos where id = @p_id"
+                    @"select id, user_id, description, geo, image_path, image_size, date_created from photos where id = @p_id and deleted = false"
             };
             cmd.Parameters.AddWithValue("p_id", id);
             var reader = await cmd.ExecuteReaderAsync();
 
             var next = await reader.ReadAsync();
             return next ? DataReaderMappers.MapToPhoto(reader) : null;
+        }
+
+        public async Task<List<Guid>> GetAllPhotos(Guid userId)
+        {
+            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            conn.Open();
+            using var cmd = new NpgsqlCommand
+            {
+                Connection = conn,
+                CommandText = @"select id from photos where user_id = @p_user_id and deleted = false order by date_created desc"
+            };
+            cmd.Parameters.AddWithValue("p_user_id", userId);
+            var reader = await cmd.ExecuteReaderAsync();
+
+            var photos = new List<Guid>();
+            while (await reader.ReadAsync())
+            {
+                photos.Add(reader.GetGuid(0));
+            }
+
+            return photos;
         }
 
         public async Task Upload(Photo photo)

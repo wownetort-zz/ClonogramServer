@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using Clonogram.Models;
@@ -49,6 +50,11 @@ namespace Clonogram.Services
             var photo = await _photosRepository.GetById(id);
             var photoView = _mapper.Map<PhotoView>(photo);
             return photoView;
+        }
+
+        public async Task<List<Guid>> GetAllPhotos(Guid userId)
+        {
+            return await _photosRepository.GetAllPhotos(userId);
         }
 
         public async Task Update(PhotoView photoView)

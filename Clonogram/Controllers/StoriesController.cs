@@ -35,6 +35,13 @@ namespace Clonogram.Controllers
             return Ok(storyView);
         }
 
+        public async Task<IActionResult> GetStoriesByUser(string userId)
+        {
+            var guid = Guid.Parse(userId);
+            var stories = await _storiesService.GetAllStories(guid);
+            return Ok(stories);
+        }
+
         [HttpDelete]
         public async Task<IActionResult> Delete(string id)
         {

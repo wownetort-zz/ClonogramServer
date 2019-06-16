@@ -18,11 +18,20 @@ namespace Clonogram.Controllers
             _photosService = photosService;
             _hashtagsService = hashtagsService;
         }
+
         public async Task<IActionResult> GetPhotosByHashtag(string hashtag)
         {
             var photos = await _hashtagsService.GetPhotos(hashtag);
             return Ok(photos);
         }
+
+        public async Task<IActionResult> GetPhotosByUser(string userId)
+        {
+            var guid = Guid.Parse(userId);
+            var photos = await _photosService.GetAllPhotos(guid);
+            return Ok(photos);
+        }
+
         public async Task<IActionResult> GetLikesCount(string id)
         {
             var guid = Guid.Parse(id);

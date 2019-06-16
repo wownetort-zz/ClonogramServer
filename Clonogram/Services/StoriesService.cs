@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using Clonogram.Models;
@@ -48,6 +49,11 @@ namespace Clonogram.Services
             var story = await _storiesRepository.GetById(id);
             var storyView = _mapper.Map<StoryView>(story);
             return storyView;
+        }
+
+        public async Task<List<Guid>> GetAllStories(Guid userId)
+        {
+            return await _storiesRepository.GetAllStories(userId);
         }
     }
 }
