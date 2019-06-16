@@ -31,6 +31,13 @@ namespace Clonogram.Controllers
             return Ok(commentView);
         }
 
+        public async Task<IActionResult> GetAllPhotoComments(string photoId)
+        {
+            var guid = Guid.Parse(photoId);
+            var comments = await _commentsService.GetAllPhotosComments(guid);
+            return Ok(comments);
+        }
+
         [HttpPut]
         public async Task<IActionResult> Update(CommentView commentView)
         {

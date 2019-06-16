@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Clonogram.Helpers;
 using Clonogram.Models;
@@ -44,6 +45,27 @@ namespace Clonogram.Repositories
 
             var next = await reader.ReadAsync();
             return next ? DataReaderMappers.MapToComment(reader) : null;
+        }
+
+        public async Task<List<Guid>> GetAllPhotosComments(Guid photoId)
+        {
+            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            conn.Open();
+            using var cmd = new NpgsqlCommand
+            {
+                Connection = conn,
+                CommandText = @"select id from comments where photo_id = @p_photo_id order by date_created"
+            };
+            cmd.Parameters.AddWithValue("p_photo_id", photoId);
+            var reader = await cmd.ExecuteReaderAsync();
+
+            var stories = new List<Guid>();
+            while (await reader.ReadAsync())
+            {
+                stories.Add(reader.GetGuid(0));
+            }
+
+            return stories;
         }
 
         public async Task Update(Comment comment)

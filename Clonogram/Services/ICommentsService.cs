@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Clonogram.ViewModels;
 
@@ -8,6 +9,7 @@ namespace Clonogram.Services
     {
         Task Create(CommentView commentView);
         Task<CommentView> GetById(Guid id);
+        Task<List<Guid>> GetAllPhotosComments(Guid photoId);
 
         Task Update(CommentView commentView);
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using Clonogram.Models;
@@ -35,6 +36,11 @@ namespace Clonogram.Services
             var comment = await _commentsRepository.GetById(id);
             var commentView = _mapper.Map<CommentView>(comment);
             return commentView;
+        }
+
+        public async Task<List<Guid>> GetAllPhotosComments(Guid photoId)
+        {
+            return await _commentsRepository.GetAllPhotosComments(photoId);
         }
 
         public async Task Update(CommentView commentView)
