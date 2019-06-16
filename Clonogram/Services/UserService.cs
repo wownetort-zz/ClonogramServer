@@ -36,9 +36,10 @@ namespace Clonogram.Services
             return userView;
         }
 
-        public async Task<IEnumerable<string>> GetAllUsernames()
+        public async Task<IEnumerable<string>> GetAllUsernames(string name)
         {
-            return await _usersRepository.GetAllUsernames();
+            if (name.Length < 3) throw new ArgumentException("Name length < 3");
+            return await _usersRepository.GetAllUsernames(name);
         }
 
         public async Task<UserView> GetById(Guid id)
@@ -51,6 +52,7 @@ namespace Clonogram.Services
         public async Task Create(UserView userView)
         {
             if (string.IsNullOrWhiteSpace(userView.Password)) throw new ArgumentException("Password is required");
+            if (userView.Username.Length < 3) throw new ArgumentException("Username length < 3");
             if (await _usersRepository.GetUserByName(userView.Username) != null) throw new ArgumentException("Username \"" + userView.Username + "\" is already taken");
 
             _cryptographyService.CreatePasswordHash(userView.Password, out var passwordHash, out var passwordSalt);

@@ -8,7 +8,7 @@ namespace Clonogram.Services
     public interface IUserService
     {
         Task<UserView> Authenticate(string username, string password);
-        Task<IEnumerable<string>> GetAllUsernames();
+        Task<IEnumerable<string>> GetAllUsernames(string name);
         Task<UserView> GetById(Guid id);
         Task Create(UserView userView);
         Task Update(UserView userView);

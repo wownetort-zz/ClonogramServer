@@ -8,7 +8,7 @@ namespace Clonogram.Repositories
     public interface IUsersRepository
     {
         Task<User> GetUserByName(string username);
-        Task<List<string>> GetAllUsernames();
+        Task<List<string>> GetAllUsernames(string name);
         Task<User> GetUserById(Guid id);
         Task AddUser(User user);
         Task UpdateUser(User user);

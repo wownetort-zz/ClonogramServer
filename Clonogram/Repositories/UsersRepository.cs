@@ -26,14 +26,15 @@ namespace Clonogram.Repositories
             return next ? DataReaderMappers.MapToUser(reader) : null;
         }
 
-        public async Task<List<string>> GetAllUsernames()
+        public async Task<List<string>> GetAllUsernames(string name)
         {
             using var conn = new NpgsqlConnection(Constants.ConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
-                Connection = conn, CommandText = @"select username from users where deleted = false"
+                Connection = conn, CommandText = @"select username from users where username like @p_name and deleted = false"
             };
+            cmd.Parameters.AddWithValue("p_name", $"%{name}%");
             var reader = await cmd.ExecuteReaderAsync();
 
             var usernames = new List<string>();

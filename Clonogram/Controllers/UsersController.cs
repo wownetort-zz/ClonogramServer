@@ -50,10 +50,17 @@ namespace Clonogram.Controllers
             }
         }
 
-        public async Task<IActionResult> GetAllUsernames()
+        public async Task<IActionResult> GetAllUsernamesByName(string name)
         {
-            var users = await _userService.GetAllUsernames();
-            return Ok(users);
+            try
+            {
+                var users = await _userService.GetAllUsernames(name);
+                return Ok(users);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         public async Task<IActionResult> GetById(string id)
