@@ -4,6 +4,7 @@ using Clonogram.Services;
 using Clonogram.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Clonogram.Controllers
 {
@@ -41,7 +42,8 @@ namespace Clonogram.Controllers
         {
             try
             {
-                await _usersService.Create(userView);
+                var avatar = HttpContext.Request.Form.Files.Any() ? HttpContext.Request.Form.Files[0] : null;
+                await _usersService.Create(userView, avatar);
                 return Ok();
             }
             catch (ArgumentException ex)
@@ -89,8 +91,9 @@ namespace Clonogram.Controllers
         {
             try
             {
+                var avatar = HttpContext.Request.Form.Files.Any() ? HttpContext.Request.Form.Files[0] : null;
                 userView.Id = HttpContext.User.Identity.Name;
-                await _usersService.Update(userView);
+                await _usersService.Update(userView, avatar);
                 return Ok();
             }
             catch (ArgumentException ex)

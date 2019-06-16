@@ -18,6 +18,7 @@ namespace Clonogram.Helpers
                 FirstName = reader.GetString(reader.GetOrdinal("first_name")),
                 LastName = reader.GetString(reader.GetOrdinal("last_name")),
                 Description = reader.GetString(reader.GetOrdinal("description")),
+                AvatarPath = reader.GetString(reader.GetOrdinal("avatar_path")),
             };
         }
 

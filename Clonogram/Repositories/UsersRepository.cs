@@ -96,7 +96,7 @@ namespace Clonogram.Repositories
             {
                 Connection = conn,
                 CommandText =
-                    @"select id, username, email, password_hash, password_salt, first_name, last_name, description from users where id = @p_id"
+                    @"select id, avatar_path, username, email, password_hash, password_salt, first_name, last_name, description from users where id = @p_id"
             };
             cmd.Parameters.AddWithValue("p_id", id);
             var reader = await cmd.ExecuteReaderAsync();
@@ -113,10 +113,11 @@ namespace Clonogram.Repositories
             {
                 Connection = conn,
                 CommandText =
-                    @"insert into users (id, username, email, password_hash, password_salt, first_name, last_name, description, date_updated, date_created)
-                                        values(@p_id, @p_username, @p_email, @p_password_hash, @p_password_salt, @p_first_name, @p_last_name, @p_description, @p_date_updated, @p_date_created)"
+                    @"insert into users (id, avatar_path, username, email, password_hash, password_salt, first_name, last_name, description, date_updated, date_created)
+                                        values(@p_id, @p_avatar_path, @p_username, @p_email, @p_password_hash, @p_password_salt, @p_first_name, @p_last_name, @p_description, @p_date_updated, @p_date_created)"
             };
             cmd.Parameters.AddWithValue("p_id", user.Id);
+            cmd.Parameters.AddWithValue("p_avatar_path", user.AvatarPath);
             cmd.Parameters.AddWithValue("p_username", user.Username);
             cmd.Parameters.AddWithValue("p_password_hash", user.PasswordHash);
             cmd.Parameters.AddWithValue("p_password_salt", user.PasswordSalt);
@@ -138,11 +139,12 @@ namespace Clonogram.Repositories
             {
                 Connection = conn,
                 CommandText =
-                    @"update users set username = @p_username, email = @p_email, password_hash = @p_password_hash, password_salt = @p_password_salt, 
+                    @"update users set username = @p_username, avatar_path = @p_avatar_path, email = @p_email, password_hash = @p_password_hash, password_salt = @p_password_salt, 
                         first_name = @p_first_name, last_name = @p_last_name, description = @p_description, date_updated = @p_date_updated
                         where id = @p_id"
             };
             cmd.Parameters.AddWithValue("p_id", user.Id);
+            cmd.Parameters.AddWithValue("p_avatar_path", user.AvatarPath);
             cmd.Parameters.AddWithValue("p_username", user.Username);
             cmd.Parameters.AddWithValue("p_password_hash", user.PasswordHash);
             cmd.Parameters.AddWithValue("p_password_salt", user.PasswordSalt);

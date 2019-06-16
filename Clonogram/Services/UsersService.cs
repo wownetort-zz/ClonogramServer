@@ -6,6 +6,7 @@ using Clonogram.Models;
 using Clonogram.Repositories;
 using Clonogram.ViewModels;
 using MassTransit;
+using Microsoft.AspNetCore.Http;
 
 namespace Clonogram.Services
 {
@@ -13,13 +14,15 @@ namespace Clonogram.Services
     {
         private readonly IUsersRepository _usersRepository;
         private readonly ICryptographyService _cryptographyService;
+        private readonly IAmazonS3Repository _amazonS3Repository;
         private readonly IMapper _mapper;
 
-        public UsersService(IUsersRepository usersRepository, ICryptographyService cryptographyService, IMapper mapper)
+        public UsersService(IUsersRepository usersRepository, ICryptographyService cryptographyService, IMapper mapper, IAmazonS3Repository amazonS3Repository)
         {
             _usersRepository = usersRepository;
             _cryptographyService = cryptographyService;
             _mapper = mapper;
+            _amazonS3Repository = amazonS3Repository;
         }
 
         public async Task<UserView> Authenticate(string username, string password)
@@ -59,7 +62,7 @@ namespace Clonogram.Services
             return userView;
         }
 
-        public async Task Create(UserView userView)
+        public async Task Create(UserView userView, IFormFile avatar = null)
         {
             if (string.IsNullOrWhiteSpace(userView.Password)) throw new ArgumentException("Password is required");
             if (userView.Username.Length < 3) throw new ArgumentException("Username length < 3");
@@ -71,10 +74,17 @@ namespace Clonogram.Services
             var user = _mapper.Map<User>(userView);
             user.PasswordHash = passwordHash;
             user.PasswordSalt = passwordSalt;
+
+            if (avatar != null)
+            {
+                await _amazonS3Repository.Upload(avatar, userView.Id);
+                user.AvatarPath = $"{Constants.ServiceURL}/{Constants.BucketName}/{userView.Id}";
+            }
+
             await _usersRepository.AddUser(user);
         }
 
-        public async Task Update(UserView userView)
+        public async Task Update(UserView userView, IFormFile avatar = null)
         {
             var user = _mapper.Map<User>(userView);
             var userDB = await _usersRepository.GetUserById(user.Id);
@@ -86,17 +96,27 @@ namespace Clonogram.Services
                 if (await _usersRepository.GetUserByName(user.Username) != null) throw new ArgumentException("Username \"" + user.Username + "\" is already taken");
             }
 
-            userDB.FirstName = userView.FirstName;
-            userDB.LastName = userView.LastName;
-            userDB.Username = userView.Username;
+            if (!string.IsNullOrWhiteSpace(userView.FirstName)) userDB.FirstName = userView.FirstName;
+            if (!string.IsNullOrWhiteSpace(userView.LastName)) userDB.LastName = userView.LastName;
+            if (!string.IsNullOrWhiteSpace(userView.Username)) userDB.Username = userView.Username;
             userDB.Description = userView.Description;
-            userDB.Email = userView.Email;
+            if (!string.IsNullOrWhiteSpace(userView.Email)) userDB.Email = userView.Email;
 
             if (!string.IsNullOrWhiteSpace(userView.Password))
             {
                 _cryptographyService.CreatePasswordHash(userView.Password, out var passwordHash, out var passwordSalt);
                 userDB.PasswordHash = passwordHash;
                 userDB.PasswordSalt = passwordSalt;
+            }
+
+            if (avatar != null)
+            {
+                if (!string.IsNullOrWhiteSpace(userDB.AvatarPath))
+                {
+                    await _amazonS3Repository.Delete(userView.Id);
+                }
+                await _amazonS3Repository.Upload(avatar, userView.Id);
+                userDB.AvatarPath = $"{Constants.ServiceURL}/{Constants.BucketName}/{userView.Id}";
             }
 
             await _usersRepository.UpdateUser(userDB);

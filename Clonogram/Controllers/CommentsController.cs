@@ -18,10 +18,16 @@ namespace Clonogram.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CommentView commentView)
         {
-            commentView.UserId = HttpContext.User.Identity.Name;
-
-            await _commentsService.Create(commentView);
-            return Ok();
+            try
+            {
+                commentView.UserId = HttpContext.User.Identity.Name;
+                await _commentsService.Create(commentView);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         public async Task<IActionResult> GetById(string id)

@@ -24,6 +24,7 @@ namespace Clonogram.Services
 
         public async Task Create(CommentView commentView)
         {
+            if (string.IsNullOrWhiteSpace(commentView.Text)) throw new ArgumentException("Comment is empty");
             var commentId = NewId.Next().ToGuid();
 
             var comment = _mapper.Map<Comment>(commentView);
@@ -45,6 +46,8 @@ namespace Clonogram.Services
 
         public async Task Update(CommentView commentView)
         {
+            if (string.IsNullOrWhiteSpace(commentView.Text)) throw new ArgumentException("Comment is empty");
+
             var comment = _mapper.Map<Comment>(commentView);
 
             var commentDB = await _commentsRepository.GetById(comment.Id);
