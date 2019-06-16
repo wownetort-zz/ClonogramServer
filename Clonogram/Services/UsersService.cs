@@ -9,13 +9,13 @@ using MassTransit;
 
 namespace Clonogram.Services
 {
-    public class UserService : IUserService
+    public class UsersService : IUsersService
     {
         private readonly IUsersRepository _usersRepository;
         private readonly ICryptographyService _cryptographyService;
         private readonly IMapper _mapper;
 
-        public UserService(IUsersRepository usersRepository, ICryptographyService cryptographyService, IMapper mapper)
+        public UsersService(IUsersRepository usersRepository, ICryptographyService cryptographyService, IMapper mapper)
         {
             _usersRepository = usersRepository;
             _cryptographyService = cryptographyService;

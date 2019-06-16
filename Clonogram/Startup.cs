@@ -36,17 +36,19 @@ namespace Clonogram
 
         public void AddServices(IServiceCollection services)
         {
-            services.AddSingleton<IUserService, UserService>();
+            services.AddSingleton<IUsersService, UsersService>();
             services.AddSingleton<ICryptographyService, CryptographyService>();
-            services.AddSingleton<IPhotoService, PhotoService>();
+            services.AddSingleton<IPhotosService, PhotosService>();
             services.AddSingleton<IJWTService, JWTService>();
-            services.AddSingleton<ICommentService, CommentService>();
-            services.AddSingleton<IHashtagService, HashtagService>();
+            services.AddSingleton<ICommentsService, CommentsService>();
+            services.AddSingleton<IHashtagsService, HashtagsService>();
+            services.AddSingleton<IStoriesService, StoriesService>();
 
             services.AddSingleton<IUsersRepository, UsersRepository>();
-            services.AddSingleton<IPhotoRepository, PhotoRepository>();
-            services.AddSingleton<ICommentRepository, CommentRepository>();
-            services.AddSingleton<IHashtagRepository, HashtagRepository>();
+            services.AddSingleton<IPhotosRepository, PhotosRepository>();
+            services.AddSingleton<ICommentsRepository, CommentsRepository>();
+            services.AddSingleton<IHashtagsRepository, HashtagsRepository>();
+            services.AddSingleton<IStoriesRepository, StoriesRepository>();
             services.AddSingleton<IAmazonS3Repository, AmazonS3Repository>();
         }
 
@@ -64,7 +66,7 @@ namespace Clonogram
                     {
                         OnTokenValidated = context =>
                         {
-                            var userService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
+                            var userService = context.HttpContext.RequestServices.GetRequiredService<IUsersService>();
                             var userId = Guid.Parse(context.Principal.Identity.Name);
                             var user = userService.GetById(userId);
                             if (user == null)

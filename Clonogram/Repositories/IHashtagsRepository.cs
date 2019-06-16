@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Clonogram.Repositories
 {
-    public interface IHashtagRepository
+    public interface IHashtagsRepository
     {
         Task<List<Guid>> GetPhotos(Guid hashtagId);
         Task<Guid?> GetId(string hashtag);

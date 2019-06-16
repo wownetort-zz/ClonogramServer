@@ -5,7 +5,7 @@ using Npgsql;
 
 namespace Clonogram.Repositories
 {
-    public class HashtagRepository : IHashtagRepository
+    public class HashtagsRepository : IHashtagsRepository
     {
         public async Task<List<Guid>> GetPhotos(Guid hashtagId)
         {

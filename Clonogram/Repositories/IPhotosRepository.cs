@@ -4,7 +4,7 @@ using Clonogram.Models;
 
 namespace Clonogram.Repositories
 {
-    public interface IPhotoRepository
+    public interface IPhotosRepository
     {
         Task<Photo> GetById(Guid id);
         Task Update(Photo photo);

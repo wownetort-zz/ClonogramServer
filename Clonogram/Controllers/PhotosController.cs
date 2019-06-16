@@ -10,23 +10,23 @@ namespace Clonogram.Controllers
     [Authorize]
     public class PhotosController : ControllerBase
     {
-        private readonly IPhotoService _photoService;
-        private readonly IHashtagService _hashtagService;
+        private readonly IPhotosService _photosService;
+        private readonly IHashtagsService _hashtagsService;
 
-        public PhotosController(IPhotoService photoService, IHashtagService hashtagService)
+        public PhotosController(IPhotosService photosService, IHashtagsService hashtagsService)
         {
-            _photoService = photoService;
-            _hashtagService = hashtagService;
+            _photosService = photosService;
+            _hashtagsService = hashtagsService;
         }
         public async Task<IActionResult> GetPhotosByHashtag(string hashtag)
         {
-            var photos = await _hashtagService.GetPhotos(hashtag);
+            var photos = await _hashtagsService.GetPhotos(hashtag);
             return Ok(photos);
         }
         public async Task<IActionResult> GetLikesCount(string id)
         {
             var guid = Guid.Parse(id);
-            var likesCount = await _photoService.GetLikesCount(guid);
+            var likesCount = await _photosService.GetLikesCount(guid);
             return Ok(likesCount);
         }
 
@@ -36,7 +36,7 @@ namespace Clonogram.Controllers
             var file = HttpContext.Request.Form.Files[0];
             photo.UserId = HttpContext.User.Identity.Name;
 
-            await _photoService.Upload(file, photo);
+            await _photosService.Upload(file, photo);
 
             return Ok();
         }
@@ -44,7 +44,7 @@ namespace Clonogram.Controllers
         public async Task<IActionResult> GetById(string id)
         {
             var guid = Guid.Parse(id);
-            var photoView = await _photoService.GetById(guid);
+            var photoView = await _photosService.GetById(guid);
             return Ok(photoView);
         }
 
@@ -54,7 +54,7 @@ namespace Clonogram.Controllers
             try
             {
                 photoView.UserId = HttpContext.User.Identity.Name;
-                await _photoService.Update(photoView);
+                await _photosService.Update(photoView);
                 return Ok();
             }
             catch (ArgumentException ex)
@@ -70,7 +70,7 @@ namespace Clonogram.Controllers
             {
                 var userId = Guid.Parse(HttpContext.User.Identity.Name);
                 var photoId = Guid.Parse(id);
-                await _photoService.Delete(userId, photoId);
+                await _photosService.Delete(userId, photoId);
                 return Ok();
             }
             catch (ArgumentException ex)
@@ -85,7 +85,7 @@ namespace Clonogram.Controllers
             var photoGuid = Guid.Parse(photoId);
             var userId = Guid.Parse(HttpContext.User.Identity.Name);
 
-            await _photoService.Like(userId, photoGuid);
+            await _photosService.Like(userId, photoGuid);
 
             return Ok();
         }
@@ -96,7 +96,7 @@ namespace Clonogram.Controllers
             var photoGuid = Guid.Parse(photoId);
             var userId = Guid.Parse(HttpContext.User.Identity.Name);
 
-            await _photoService.RemoveLike(userId, photoGuid);
+            await _photosService.RemoveLike(userId, photoGuid);
 
             return Ok();
         }

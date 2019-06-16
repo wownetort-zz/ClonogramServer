@@ -6,7 +6,7 @@ using Npgsql;
 
 namespace Clonogram.Repositories
 {
-    public class CommentRepository : ICommentRepository
+    public class CommentsRepository : ICommentsRepository
     {
         public async Task Create(Comment comment)
         {

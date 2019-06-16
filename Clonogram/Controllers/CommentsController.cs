@@ -8,11 +8,11 @@ namespace Clonogram.Controllers
 {
     public class CommentsController : ControllerBase
     {
-        private readonly ICommentService _commentService;
+        private readonly ICommentsService _commentsService;
 
-        public CommentsController(ICommentService commentService)
+        public CommentsController(ICommentsService commentsService)
         {
-            _commentService = commentService;
+            _commentsService = commentsService;
         }
 
         [HttpPost]
@@ -20,14 +20,14 @@ namespace Clonogram.Controllers
         {
             commentView.UserId = HttpContext.User.Identity.Name;
 
-            await _commentService.Create(commentView);
+            await _commentsService.Create(commentView);
             return Ok();
         }
 
         public async Task<IActionResult> GetById(string id)
         {
             var guid = Guid.Parse(id);
-            var commentView = await _commentService.GetById(guid);
+            var commentView = await _commentsService.GetById(guid);
             return Ok(commentView);
         }
 
@@ -37,7 +37,7 @@ namespace Clonogram.Controllers
             try
             {
                 commentView.UserId = HttpContext.User.Identity.Name;
-                await _commentService.Update(commentView);
+                await _commentsService.Update(commentView);
                 return Ok();
             }
             catch (ArgumentException ex)
@@ -53,7 +53,7 @@ namespace Clonogram.Controllers
             {
                 var userId = Guid.Parse(HttpContext.User.Identity.Name);
                 var commentId = Guid.Parse(id);
-                await _commentService.DeleteMy(userId, commentId);
+                await _commentsService.DeleteMy(userId, commentId);
                 return Ok();
             }
             catch (ArgumentException ex)
@@ -69,7 +69,7 @@ namespace Clonogram.Controllers
             {
                 var userId = Guid.Parse(HttpContext.User.Identity.Name);
                 var commentId = Guid.Parse(id);
-                await _commentService.DeleteOnMyPhoto(userId, commentId);
+                await _commentsService.DeleteOnMyPhoto(userId, commentId);
                 return Ok();
             }
             catch (ArgumentException ex)

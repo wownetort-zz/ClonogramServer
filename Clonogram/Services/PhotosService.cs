@@ -9,18 +9,18 @@ using Microsoft.AspNetCore.Http;
 
 namespace Clonogram.Services
 {
-    public class PhotoService : IPhotoService
+    public class PhotosService : IPhotosService
     {
-        private readonly IPhotoRepository _photoRepository;
+        private readonly IPhotosRepository _photosRepository;
         private readonly IAmazonS3Repository _amazonS3Repository;
-        private readonly IHashtagService _hashtagService;
+        private readonly IHashtagsService _hashtagsService;
         private readonly IMapper _mapper;
 
-        public PhotoService(IPhotoRepository photoRepository, IAmazonS3Repository amazonS3Repository, IHashtagService hashtagService, IMapper mapper)
+        public PhotosService(IPhotosRepository photosRepository, IAmazonS3Repository amazonS3Repository, IHashtagsService hashtagsService, IMapper mapper)
         {
-            _photoRepository = photoRepository;
+            _photosRepository = photosRepository;
             _amazonS3Repository = amazonS3Repository;
-            _hashtagService = hashtagService;
+            _hashtagsService = hashtagsService;
             _mapper = mapper;
         }
 
@@ -32,21 +32,21 @@ namespace Clonogram.Services
             var photoModel = _mapper.Map<Photo>(photoView);
             photoModel.Id = photoId;
             photoModel.ImagePath = $"{Constants.ServiceURL}/{Constants.BucketName}/{photoId.ToString()}";
-            await _photoRepository.Upload(photoModel);
-            await _hashtagService.AddNewHashtags(photoId, photoModel.Description);
+            await _photosRepository.Upload(photoModel);
+            await _hashtagsService.AddNewHashtags(photoId, photoModel.Description);
         }
 
         public async Task Delete(Guid userId, Guid photoId)
         {
-            var photoDB = await _photoRepository.GetById(photoId);
+            var photoDB = await _photosRepository.GetById(photoId);
             if (photoDB == null) throw new ArgumentException("Photo not found");
             if (photoDB.UserId != userId) throw new ArgumentException("Photo doesn't belong to user");
-            await _photoRepository.Delete(photoId);
+            await _photosRepository.Delete(photoId);
         }
 
         public async Task<PhotoView> GetById(Guid id)
         {
-            var photo = await _photoRepository.GetById(id);
+            var photo = await _photosRepository.GetById(id);
             var photoView = _mapper.Map<PhotoView>(photo);
             return photoView;
         }
@@ -55,7 +55,7 @@ namespace Clonogram.Services
         {
             var photo = _mapper.Map<Photo>(photoView);
 
-            var photoDB = await _photoRepository.GetById(photo.Id);
+            var photoDB = await _photosRepository.GetById(photo.Id);
             if (photoDB == null) throw new ArgumentException("Photo not found");
 
             if (photoDB.UserId != photo.UserId)
@@ -64,23 +64,23 @@ namespace Clonogram.Services
             }
 
             photoDB.Description = photo.Description;
-            await _photoRepository.Update(photoDB);
-            await _hashtagService.AddNewHashtags(photoDB.Id, photoDB.Description);
+            await _photosRepository.Update(photoDB);
+            await _hashtagsService.AddNewHashtags(photoDB.Id, photoDB.Description);
         }
 
         public async Task Like(Guid userId, Guid photoId)
         {
-            await _photoRepository.Like(userId, photoId);
+            await _photosRepository.Like(userId, photoId);
         }
 
         public async Task RemoveLike(Guid userId, Guid photoId)
         {
-            await _photoRepository.RemoveLike(userId, photoId);
+            await _photosRepository.RemoveLike(userId, photoId);
         }
 
         public async Task<int> GetLikesCount(Guid photoId)
         {
-            return await _photoRepository.GetLikesCount(photoId);
+            return await _photosRepository.GetLikesCount(photoId);
         }
     }
 }

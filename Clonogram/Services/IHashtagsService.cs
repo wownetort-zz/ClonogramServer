@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Clonogram.Services
 {
-    public interface IHashtagService
+    public interface IHashtagsService
     {
         Task<List<Guid>> GetPhotos(string hashtag);
         Task AddNewHashtags(Guid photoId, string text);

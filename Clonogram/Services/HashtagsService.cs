@@ -7,23 +7,23 @@ using MassTransit;
 
 namespace Clonogram.Services
 {
-    public class HashtagService : IHashtagService
+    public class HashtagsService : IHashtagsService
     {
-        private readonly IHashtagRepository _hashtagRepository;
+        private readonly IHashtagsRepository _hashtagsRepository;
         private readonly Regex _regex;
 
-        public HashtagService(IHashtagRepository hashtagRepository)
+        public HashtagsService(IHashtagsRepository hashtagsRepository)
         {
-            _hashtagRepository = hashtagRepository;
+            _hashtagsRepository = hashtagsRepository;
             _regex = new Regex(@"(?<=#)\w+");
         }
 
         public async Task<List<Guid>> GetPhotos(string hashtag)
         {
-            var hashtagId = await _hashtagRepository.GetId(hashtag);
+            var hashtagId = await _hashtagsRepository.GetId(hashtag);
             if (hashtagId == null) return new List<Guid>();
 
-            return await _hashtagRepository.GetPhotos(hashtagId.Value);
+            return await _hashtagsRepository.GetPhotos(hashtagId.Value);
         }
 
         public async Task AddNewHashtags(Guid photoId, string text)
@@ -48,20 +48,20 @@ namespace Clonogram.Services
 
         public async Task Add(Guid photoId, string hashTag)
         {
-            var hashtagId = await _hashtagRepository.GetId(hashTag);
+            var hashtagId = await _hashtagsRepository.GetId(hashTag);
             if (hashtagId == null)
             {
                 hashtagId = NewId.Next().ToGuid();
-                await _hashtagRepository.Add(hashTag, hashtagId.Value);
-                hashtagId = await _hashtagRepository.GetId(hashTag);
+                await _hashtagsRepository.Add(hashTag, hashtagId.Value);
+                hashtagId = await _hashtagsRepository.GetId(hashTag);
             }
 
-            await _hashtagRepository.AddToPhoto(photoId, hashtagId.Value);
+            await _hashtagsRepository.AddToPhoto(photoId, hashtagId.Value);
         }
 
         public async Task RemoveAll(Guid photoId)
         {
-            await _hashtagRepository.RemoveAll(photoId);
+            await _hashtagsRepository.RemoveAll(photoId);
         }
     }
 }

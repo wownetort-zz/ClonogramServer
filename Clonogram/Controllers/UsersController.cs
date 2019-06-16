@@ -10,12 +10,12 @@ namespace Clonogram.Controllers
     [Authorize]
     public class UsersController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IUsersService _usersService;
         private readonly IJWTService _jwtService;
 
-        public UsersController(IUserService userService, IJWTService jwtService)
+        public UsersController(IUsersService usersService, IJWTService jwtService)
         {
-            _userService = userService;
+            _usersService = usersService;
             _jwtService = jwtService;
         }
 
@@ -23,7 +23,7 @@ namespace Clonogram.Controllers
         [HttpPost]
         public async Task<IActionResult> Authenticate(string username, string password)
         {
-            var user = await _userService.Authenticate(username, password);
+            var user = await _usersService.Authenticate(username, password);
             if (user == null) return BadRequest(new { message = "Username or password is incorrect" });
 
             var tokenString = _jwtService.GetToken(user.Id);
@@ -41,7 +41,7 @@ namespace Clonogram.Controllers
         {
             try
             {
-                await _userService.Create(userView);
+                await _usersService.Create(userView);
                 return Ok();
             }
             catch (ArgumentException ex)
@@ -54,7 +54,7 @@ namespace Clonogram.Controllers
         {
             try
             {
-                var users = await _userService.GetAllUsernames(name);
+                var users = await _usersService.GetAllUsernames(name);
                 return Ok(users);
             }
             catch (ArgumentException ex)
@@ -66,7 +66,7 @@ namespace Clonogram.Controllers
         public async Task<IActionResult> GetById(string id)
         {
             var guid = Guid.Parse(id);
-            var userView = await _userService.GetById(guid);
+            var userView = await _usersService.GetById(guid);
             return Ok(userView);
         }
 
@@ -76,7 +76,7 @@ namespace Clonogram.Controllers
             try
             {
                 userView.Id = HttpContext.User.Identity.Name;
-                await _userService.Update(userView);
+                await _usersService.Update(userView);
                 return Ok();
             }
             catch (ArgumentException ex)
@@ -89,7 +89,7 @@ namespace Clonogram.Controllers
         public async Task<IActionResult> Delete()
         {
             var guid = Guid.Parse(HttpContext.User.Identity.Name);
-            await _userService.Delete(guid);
+            await _usersService.Delete(guid);
             return Ok();
         }
 
@@ -102,7 +102,7 @@ namespace Clonogram.Controllers
                 var userGuid = Guid.Parse(HttpContext.User.Identity.Name);
                 var secondaryGuid = Guid.Parse(userId);
 
-                await _userService.Subscribe(userGuid, secondaryGuid);
+                await _usersService.Subscribe(userGuid, secondaryGuid);
                 return Ok();
             }
             catch (ArgumentException ex)

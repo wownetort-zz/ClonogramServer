@@ -35,6 +35,18 @@ namespace Clonogram.Helpers
             };
         }
 
+        public static Story MapToStory(DbDataReader reader)
+        {
+            return new Story
+            {
+                Id = reader.GetGuid(reader.GetOrdinal("id")),
+                UserId = reader.GetGuid(reader.GetOrdinal("user_id")),
+                ImageSize = reader.GetInt32(reader.GetOrdinal("image_size")),
+                ImagePath = reader.GetString(reader.GetOrdinal("image_path")),
+                DateCreated = reader.GetDateTime(reader.GetOrdinal("date_created")),
+            };
+        }
+
         public static Comment MapToComment(DbDataReader reader)
         {
             return new Comment()

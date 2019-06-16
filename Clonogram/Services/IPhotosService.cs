@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Clonogram.Services
 {
-    public interface IPhotoService
+    public interface IPhotosService
     {
         Task Upload(IFormFile photo, PhotoView photoView);
         Task Delete(Guid userId, Guid photoId);

@@ -5,7 +5,7 @@ using Clonogram.ViewModels;
 
 namespace Clonogram.Services
 {
-    public interface IUserService
+    public interface IUsersService
     {
         Task<UserView> Authenticate(string username, string password);
         Task<IEnumerable<string>> GetAllUsernames(string name);

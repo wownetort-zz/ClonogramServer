@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.S3;
+using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Microsoft.AspNetCore.Http;
 
@@ -32,6 +33,18 @@ namespace Clonogram.Repositories
 
             var fileTransferUtility = new TransferUtility(client);
             await fileTransferUtility.UploadAsync(uploadRequest);
+        }
+
+        public async Task Delete(string name)
+        {
+            using var client = new AmazonS3Client(_credentials, new AmazonS3Config { ServiceURL = Constants.ServiceURL });
+            var deleteObjectRequest = new DeleteObjectRequest
+            {
+                BucketName = Constants.BucketName,
+                Key = name
+            };
+
+            await client.DeleteObjectAsync(deleteObjectRequest);
         }
     }
 }

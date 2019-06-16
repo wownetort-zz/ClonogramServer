@@ -4,7 +4,7 @@ using Clonogram.Models;
 
 namespace Clonogram.Repositories
 {
-    public interface ICommentRepository
+    public interface ICommentsRepository
     {
         Task Create(Comment comment);
         Task<Comment> GetById(Guid id);

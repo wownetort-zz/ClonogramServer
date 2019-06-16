@@ -6,7 +6,7 @@ using Npgsql;
 
 namespace Clonogram.Repositories
 {
-    public class PhotoRepository : IPhotoRepository
+    public class PhotosRepository : IPhotosRepository
     {
         public async Task<Photo> GetById(Guid id)
         {

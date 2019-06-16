@@ -8,17 +8,17 @@ using MassTransit;
 
 namespace Clonogram.Services
 {
-    public class CommentService : ICommentService
+    public class CommentsService : ICommentsService
     {
-        private readonly ICommentRepository _commentRepository;
+        private readonly ICommentsRepository _commentsRepository;
         private readonly IMapper _mapper;
-        private readonly IPhotoRepository _photoRepository;
+        private readonly IPhotosRepository _photosRepository;
 
-        public CommentService(ICommentRepository commentRepository, IMapper mapper, IPhotoRepository photoRepository)
+        public CommentsService(ICommentsRepository commentsRepository, IMapper mapper, IPhotosRepository photosRepository)
         {
-            _commentRepository = commentRepository;
+            _commentsRepository = commentsRepository;
             _mapper = mapper;
-            _photoRepository = photoRepository;
+            _photosRepository = photosRepository;
         }
 
         public async Task Create(CommentView commentView)
@@ -27,12 +27,12 @@ namespace Clonogram.Services
 
             var comment = _mapper.Map<Comment>(commentView);
             comment.Id = commentId;
-            await _commentRepository.Create(comment);
+            await _commentsRepository.Create(comment);
         }
 
         public async Task<CommentView> GetById(Guid id)
         {
-            var comment = await _commentRepository.GetById(id);
+            var comment = await _commentsRepository.GetById(id);
             var commentView = _mapper.Map<CommentView>(comment);
             return commentView;
         }
@@ -41,7 +41,7 @@ namespace Clonogram.Services
         {
             var comment = _mapper.Map<Comment>(commentView);
 
-            var commentDB = await _commentRepository.GetById(comment.Id);
+            var commentDB = await _commentsRepository.GetById(comment.Id);
             if (commentDB == null) throw new ArgumentException("Comment not found");
 
             if (commentDB.UserId != comment.UserId)
@@ -50,27 +50,27 @@ namespace Clonogram.Services
             }
 
             commentDB.Text = comment.Text;
-            await _commentRepository.Update(commentDB);
+            await _commentsRepository.Update(commentDB);
         }
 
         public async Task DeleteMy(Guid userId, Guid commentId)
         {
-            var commentDB = await _commentRepository.GetById(commentId);
+            var commentDB = await _commentsRepository.GetById(commentId);
             if (commentDB == null) throw new ArgumentException("Comment not found");
             if (commentDB.UserId != userId) throw new ArgumentException("Comment doesn't belong to user");
-            await _commentRepository.Delete(commentId);
+            await _commentsRepository.Delete(commentId);
         }
 
         public async Task DeleteOnMyPhoto(Guid userId, Guid commentId)
         {
-            var commentDB = await _commentRepository.GetById(commentId);
+            var commentDB = await _commentsRepository.GetById(commentId);
             if (commentDB == null) throw new ArgumentException("Comment not found");
 
-            var photo = await _photoRepository.GetById(commentDB.PhotoId);
+            var photo = await _photosRepository.GetById(commentDB.PhotoId);
             if (photo == null) throw new ArgumentException("Photo not found");
             if (photo.UserId != userId) throw new ArgumentException("Photo doesn't belong to user");
 
-            await _commentRepository.Delete(commentId);
+            await _commentsRepository.Delete(commentId);
         }
     }
 }

@@ -6,5 +6,6 @@ namespace Clonogram.Repositories
     public interface IAmazonS3Repository
     {
         Task Upload(IFormFile file, string name);
+        Task Delete(string name);
     }
 }
