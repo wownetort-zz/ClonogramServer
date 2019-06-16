@@ -13,5 +13,6 @@ namespace Clonogram.Services
         Task Create(UserView userView);
         Task Update(UserView userView);
         Task Delete(Guid id);
+        Task Subscribe(Guid userId, Guid secondaryUserId);
     }
 }

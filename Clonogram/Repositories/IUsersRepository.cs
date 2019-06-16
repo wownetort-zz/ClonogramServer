@@ -13,5 +13,6 @@ namespace Clonogram.Repositories
         Task AddUser(User user);
         Task UpdateUser(User user);
         Task DeleteUserById(Guid id);
+        Task Subscribe(Guid userId, Guid secondaryUserId);
     }
 }

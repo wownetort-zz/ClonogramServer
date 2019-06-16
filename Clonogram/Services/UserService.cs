@@ -94,5 +94,13 @@ namespace Clonogram.Services
         {
             await _usersRepository.DeleteUserById(id);
         }
+
+        public async Task Subscribe(Guid userId, Guid secondaryUserId)
+        {
+            var secondaryUser = await _usersRepository.GetUserById(secondaryUserId);
+            if (secondaryUser == null) throw new ArgumentException("User not found");
+
+            await _usersRepository.Subscribe(userId, secondaryUserId);
+        }
     }
 }

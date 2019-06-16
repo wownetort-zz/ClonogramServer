@@ -85,5 +85,23 @@ namespace Clonogram.Controllers
             await _userService.Delete(guid);
             return Ok();
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Subscribe(string userId)
+        {
+            try
+            {
+                if (userId == HttpContext.User.Identity.Name) return BadRequest(new { message = "Can't subscribe on yourself" });
+                var userGuid = Guid.Parse(HttpContext.User.Identity.Name);
+                var secondaryGuid = Guid.Parse(userId);
+
+                await _userService.Subscribe(userGuid, secondaryGuid);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

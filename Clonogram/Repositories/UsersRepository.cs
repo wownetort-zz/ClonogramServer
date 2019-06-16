@@ -124,5 +124,22 @@ namespace Clonogram.Repositories
 
             await cmd.ExecuteNonQueryAsync();
         }
+
+        public async Task Subscribe(Guid userId, Guid secondaryUserId)
+        {
+            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            conn.Open();
+            using var cmd = new NpgsqlCommand
+            {
+                Connection = conn,
+                CommandText =
+                    @"insert into users_relations (main_user_id, secondary_user_id, status) values(@p_main_user_id, @p_secondary_user_id, @p_status)"
+            };
+            cmd.Parameters.AddWithValue("p_main_user_id", userId);
+            cmd.Parameters.AddWithValue("p_secondary_user_id", secondaryUserId);
+            cmd.Parameters.AddWithValue("p_status", 1);
+
+            await cmd.ExecuteNonQueryAsync();
+        }
     }
 }
