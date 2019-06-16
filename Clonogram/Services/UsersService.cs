@@ -36,10 +36,20 @@ namespace Clonogram.Services
             return userView;
         }
 
-        public async Task<IEnumerable<string>> GetAllUsernames(string name)
+        public async Task<IEnumerable<Guid>> GetAllUsersByName(string name)
         {
             if (name.Length < 3) throw new ArgumentException("Name length < 3");
-            return await _usersRepository.GetAllUsernames(name);
+            return await _usersRepository.GetAllUsersByName(name);
+        }
+
+        public async Task<List<Guid>> GetAllSubscribers(Guid userId)
+        {
+            return await _usersRepository.GetAllSubscribers(userId);
+        }
+
+        public async Task<List<Guid>> GetAllSubscriptions(Guid userId)
+        {
+            return await _usersRepository.GetAllSubscriptions(userId);
         }
 
         public async Task<UserView> GetById(Guid id)

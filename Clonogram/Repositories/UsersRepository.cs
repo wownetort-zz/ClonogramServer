@@ -26,24 +26,66 @@ namespace Clonogram.Repositories
             return next ? DataReaderMappers.MapToUser(reader) : null;
         }
 
-        public async Task<List<string>> GetAllUsernames(string name)
+        public async Task<List<Guid>> GetAllUsersByName(string name)
         {
             using var conn = new NpgsqlConnection(Constants.ConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
-                Connection = conn, CommandText = @"select username from users where username like @p_name and deleted = false"
+                Connection = conn, CommandText = @"select id from users where username like @p_name and deleted = false"
             };
             cmd.Parameters.AddWithValue("p_name", $"%{name}%");
             var reader = await cmd.ExecuteReaderAsync();
 
-            var usernames = new List<string>();
+            var users = new List<Guid>();
             while (await reader.ReadAsync())
             {
-                usernames.Add(reader.GetString(0));
+                users.Add(reader.GetGuid(0));
             }
 
-            return usernames;
+            return users;
+        }
+
+        public async Task<List<Guid>> GetAllSubscribers(Guid userId)
+        {
+            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            conn.Open();
+            using var cmd = new NpgsqlCommand
+            {
+                Connection = conn,
+                CommandText = @"select main_user_id from users_relations where secondary_user_id = @p_user_id and status = 1"
+            };
+            cmd.Parameters.AddWithValue("p_user_id", userId);
+            var reader = await cmd.ExecuteReaderAsync();
+
+            var users = new List<Guid>();
+            while (await reader.ReadAsync())
+            {
+                users.Add(reader.GetGuid(0));
+            }
+
+            return users;
+        }
+
+        public async Task<List<Guid>> GetAllSubscriptions(Guid userId)
+        {
+            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            conn.Open();
+            using var cmd = new NpgsqlCommand
+            {
+                Connection = conn,
+                CommandText = @"select secondary_user_id from users_relations where main_user_id = @p_user_id and status = 1"
+            };
+            cmd.Parameters.AddWithValue("p_user_id", userId);
+            var reader = await cmd.ExecuteReaderAsync();
+
+            var users = new List<Guid>();
+            while (await reader.ReadAsync())
+            {
+                users.Add(reader.GetGuid(0));
+            }
+
+            return users;
         }
 
         public async Task<User> GetUserById(Guid id)

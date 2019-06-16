@@ -50,17 +50,31 @@ namespace Clonogram.Controllers
             }
         }
 
-        public async Task<IActionResult> GetAllUsernamesByName(string name)
+        public async Task<IActionResult> GetAllUsersByName(string name)
         {
             try
             {
-                var users = await _usersService.GetAllUsernames(name);
+                var users = await _usersService.GetAllUsersByName(name);
                 return Ok(users);
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        public async Task<IActionResult> GetAllSubscribers()
+        {
+            var userId = Guid.Parse(HttpContext.User.Identity.Name);
+            var users = await _usersService.GetAllSubscribers(userId);
+            return Ok(users);
+        }
+
+        public async Task<IActionResult> GetAllSubscriptions()
+        {
+            var userId = Guid.Parse(HttpContext.User.Identity.Name);
+            var users = await _usersService.GetAllSubscriptions(userId);
+            return Ok(users);
         }
 
         public async Task<IActionResult> GetById(string id)
