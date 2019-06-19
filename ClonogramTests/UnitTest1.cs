@@ -36,7 +36,17 @@ namespace ClonogramTests
         {
             var muxer = await ConnectionMultiplexer.ConnectAsync("rc1b-53udswomgfzm0jm3.mdb.yandexcloud.net:26379,password=Wfhmljns-2");
             var conn = muxer.GetDatabase();
-            _testOutputHelper.WriteLine(conn.Database.ToString());
+
+            var guid = NewId.Next().ToGuid().ToString();
+            conn.ListLeftPush(guid, 1);
+            conn.ListLeftPush(guid, 2);
+            conn.ListLeftPush(guid, 3);
+
+            var list = conn.ListRange(guid);
+            foreach (var value in list)
+            {
+                _testOutputHelper.WriteLine(value.ToString());
+            }
         }
 
         [Fact]
@@ -44,7 +54,17 @@ namespace ClonogramTests
         {
             var muxer = await ConnectionMultiplexer.ConnectAsync("rc1b-53udswomgfzm0jm3.mdb.yandexcloud.net:6379,password=Wfhmljns-2");
             var conn = muxer.GetDatabase();
-            _testOutputHelper.WriteLine(conn.Database.ToString());
+
+            var guid = NewId.Next().ToGuid().ToString();
+            conn.ListLeftPush(guid, 1);
+            conn.ListLeftPush(guid, 2);
+            conn.ListLeftPush(guid, 3);
+
+            var list = conn.ListRange(guid);
+            foreach (var value in list)
+            {
+                _testOutputHelper.WriteLine(value.ToString());
+            }
         }
 
         [Fact]
@@ -52,7 +72,17 @@ namespace ClonogramTests
         {
             var muxer = await ConnectionMultiplexer.ConnectAsync("127.0.0.1:6379");
             var conn = muxer.GetDatabase();
-            _testOutputHelper.WriteLine(conn.Database.ToString());
+
+            var guid = NewId.Next().ToGuid().ToString();
+            conn.ListLeftPush(guid, 1);
+            conn.ListLeftPush(guid, 2);
+            conn.ListLeftPush(guid, 3);
+
+            var list = conn.ListRange(guid);
+            foreach (var value in list)
+            {
+                _testOutputHelper.WriteLine(value.ToString());
+            }
         }
     }
 }
