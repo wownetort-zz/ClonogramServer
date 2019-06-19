@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Transfer;
 using MassTransit;
 using Npgsql;
+using StackExchange.Redis;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -27,35 +30,21 @@ namespace ClonogramTests
             _testOutputHelper = testOutputHelper;
         }
 
+
         [Fact]
-        public async void Test1()
+        public async Task Redis()
         {
-            try
+      /*      var muxer = ConnectionMultiplexer.Connect("rc1b-53udswomgfzm0jm3.mdb.yandexcloud.net:6379,password=Wfhmljns-2");
+            var conn = muxer.GetDatabase();
+*/
+            var options = new ConfigurationOptions
             {
-                AWSCredentials credentials = new BasicAWSCredentials("c7cS25L80Inr1OueEeUn", "zAQAnjAq6dAMZ8xKobsqe9O5Hriskcpp0LXxDp2O");
-                s3Client = new AmazonS3Client(credentials, new AmazonS3Config(){ServiceURL = "https://storage.yandexcloud.net" });
+                EndPoints = { "rc1b-53udswomgfzm0jm3.mdb.yandexcloud.net:26379" },
+                Password = "Wfhmljns-2"
+            };
 
-                var fileTransferUtility =
-                    new TransferUtility(s3Client);
-
-                // Option 1. Upload a file. The file name is used as the object key name.
-                await fileTransferUtility.UploadAsync(filePath, bucketName);
-                Console.WriteLine("Upload 1 completed");
-
-
-                // Option 2. Specify object key name explicitly.
-                await fileTransferUtility.UploadAsync(filePath, bucketName, keyName);
-                Console.WriteLine("Upload 2 completed");
-
-            }
-            catch (AmazonS3Exception e)
-            {
-                Console.WriteLine("Error encountered on server. Message:'{0}' when writing an object", e.Message);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Unknown encountered on server. Message:'{0}' when writing an object", e.Message);
-            }
+            var muxer = ConnectionMultiplexer.Connect(options);
+            var conn = muxer.GetDatabase();
         }
     }
 }
