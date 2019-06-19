@@ -32,9 +32,17 @@ namespace ClonogramTests
 
 
         [Fact]
-        public async Task RedisYandex()
+        public async Task RedisYandex26379()
         {
             var muxer = await ConnectionMultiplexer.ConnectAsync("rc1b-53udswomgfzm0jm3.mdb.yandexcloud.net:26379,password=Wfhmljns-2");
+            var conn = muxer.GetDatabase();
+            _testOutputHelper.WriteLine(conn.Database.ToString());
+        }
+
+        [Fact]
+        public async Task RedisYandex6379()
+        {
+            var muxer = await ConnectionMultiplexer.ConnectAsync("rc1b-53udswomgfzm0jm3.mdb.yandexcloud.net:6379,password=Wfhmljns-2");
             var conn = muxer.GetDatabase();
             _testOutputHelper.WriteLine(conn.Database.ToString());
         }
