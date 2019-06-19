@@ -32,19 +32,19 @@ namespace ClonogramTests
 
 
         [Fact]
-        public async Task Redis()
+        public async Task RedisYandex()
         {
-      /*      var muxer = ConnectionMultiplexer.Connect("rc1b-53udswomgfzm0jm3.mdb.yandexcloud.net:6379,password=Wfhmljns-2");
+            var muxer = await ConnectionMultiplexer.ConnectAsync("rc1b-53udswomgfzm0jm3.mdb.yandexcloud.net:6379,password=Wfhmljns-2");
             var conn = muxer.GetDatabase();
-*/
-            var options = new ConfigurationOptions
-            {
-                EndPoints = { "rc1b-53udswomgfzm0jm3.mdb.yandexcloud.net:26379" },
-                Password = "Wfhmljns-2"
-            };
+            _testOutputHelper.WriteLine(conn.Database.ToString());
+        }
 
-            var muxer = ConnectionMultiplexer.Connect(options);
+        [Fact]
+        public async Task RedisLocalhost()
+        {
+            var muxer = await ConnectionMultiplexer.ConnectAsync("127.0.0.1:6379");
             var conn = muxer.GetDatabase();
+            _testOutputHelper.WriteLine(conn.Database.ToString());
         }
     }
 }
