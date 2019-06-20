@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
     <PackageReference Include="NewId" Version="3.0.1" />
     <PackageReference Include="Npgsql" Version="4.0.7" />
+    <PackageReference Include="StackExchange.Redis" Version="2.0.601" />
     <PackageReference Include="SyrianBallaS.AutoMapper.Extensions.Microsoft.DependencyInjection.Signed" Version="3.2.0" />
   </ItemGroup>
 

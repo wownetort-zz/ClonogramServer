@@ -12,11 +12,13 @@ namespace Clonogram.Controllers
     {
         private readonly IPhotosService _photosService;
         private readonly IHashtagsService _hashtagsService;
+        private readonly IFeedService _feedService;
 
-        public PhotosController(IPhotosService photosService, IHashtagsService hashtagsService)
+        public PhotosController(IPhotosService photosService, IHashtagsService hashtagsService, IFeedService feedService)
         {
             _photosService = photosService;
             _hashtagsService = hashtagsService;
+            _feedService = feedService;
         }
 
         public async Task<IActionResult> GetPhotosByHashtag(string hashtag)
@@ -55,6 +57,13 @@ namespace Clonogram.Controllers
             var guid = Guid.Parse(id);
             var photoView = await _photosService.GetById(guid);
             return Ok(photoView);
+        }
+
+        public async Task<IActionResult> GetFeed()
+        {
+            var guid = Guid.Parse(HttpContext.User.Identity.Name);
+            var feed = await _feedService.GetFeed(guid);
+            return Ok(feed);
         }
 
         [HttpPut]

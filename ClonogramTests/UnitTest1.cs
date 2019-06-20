@@ -41,6 +41,7 @@ namespace ClonogramTests
             conn.ListLeftPush(guid, 1);
             conn.ListLeftPush(guid, 2);
             conn.ListLeftPush(guid, 3);
+            conn.list
 
             var list = conn.ListRange(guid);
             foreach (var value in list)

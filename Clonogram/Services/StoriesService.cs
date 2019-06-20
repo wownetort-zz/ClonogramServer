@@ -14,24 +14,31 @@ namespace Clonogram.Services
     {
         private readonly IStoriesRepository _storiesRepository;
         private readonly IAmazonS3Repository _amazonS3Repository;
+        private readonly IFeedService _feedService;
+        private readonly IRedisRepository _redisRepository;
         private readonly IMapper _mapper;
 
-        public StoriesService(IAmazonS3Repository amazonS3Repository, IMapper mapper, IStoriesRepository storiesRepository)
+        public StoriesService(IAmazonS3Repository amazonS3Repository, IMapper mapper, IStoriesRepository storiesRepository, IFeedService feedService, IRedisRepository redisRepository)
         {
             _amazonS3Repository = amazonS3Repository;
             _mapper = mapper;
             _storiesRepository = storiesRepository;
+            _feedService = feedService;
+            _redisRepository = redisRepository;
         }
 
         public async Task Upload(IFormFile photo, StoryView storyView)
         {
             var storyId = NewId.Next().ToGuid();
-            await _amazonS3Repository.Upload(photo, storyId.ToString());
 
             var storyModel = _mapper.Map<Story>(storyView);
             storyModel.Id = storyId;
             storyModel.ImagePath = $"{Constants.ServiceURL}/{Constants.BucketName}/{storyId.ToString()}";
-            await _storiesRepository.Upload(storyModel);
+            storyModel.DateCreated = DateTime.Now;
+
+            await Task.WhenAll(_storiesRepository.Upload(storyModel),
+                _feedService.AddStoryToFeed(storyModel.UserId, storyId, storyModel.DateCreated), 
+                _amazonS3Repository.Upload(photo, storyId.ToString()));
         }
 
         public async Task Delete(Guid userId, Guid storyId)
@@ -40,8 +47,9 @@ namespace Clonogram.Services
             if (storyDB == null) throw new ArgumentException("Story not found");
             if (storyDB.UserId != userId) throw new ArgumentException("Story doesn't belong to user");
 
-            await _amazonS3Repository.Delete(storyId.ToString());
-            await _storiesRepository.Delete(storyId);
+            await Task.WhenAll(_amazonS3Repository.Delete(storyId.ToString()), 
+                _storiesRepository.Delete(storyId),
+                _redisRepository.RemoveStoryFromFeed(userId, storyId, storyDB.DateCreated));
         }
 
         public async Task<StoryView> GetById(Guid id)

@@ -43,6 +43,7 @@ namespace Clonogram
             services.AddSingleton<ICommentsService, CommentsService>();
             services.AddSingleton<IHashtagsService, HashtagsService>();
             services.AddSingleton<IStoriesService, StoriesService>();
+            services.AddSingleton<IFeedService, FeedService>();
 
             services.AddSingleton<IUsersRepository, UsersRepository>();
             services.AddSingleton<IPhotosRepository, PhotosRepository>();
@@ -50,6 +51,7 @@ namespace Clonogram
             services.AddSingleton<IHashtagsRepository, HashtagsRepository>();
             services.AddSingleton<IStoriesRepository, StoriesRepository>();
             services.AddSingleton<IAmazonS3Repository, AmazonS3Repository>();
+            services.AddSingleton<IRedisRepository, RedisRepository>();
         }
 
         public void ConfigureJWT(IServiceCollection services)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Clonogram.Repositories;
@@ -30,10 +31,7 @@ namespace Clonogram.Services
         {
             await RemoveAll(photoId);
 
-            foreach (var hashtag in Parse(text))
-            {
-                await Add(photoId, hashtag);
-            }
+            await Task.WhenAll(Parse(text).Select(x => Add(photoId, x)));
         }
 
         public IEnumerable<string> Parse(string text)

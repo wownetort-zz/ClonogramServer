@@ -11,10 +11,12 @@ namespace Clonogram.Controllers
     public class StoriesController : ControllerBase
     {
         private readonly IStoriesService _storiesService;
+        private readonly IFeedService _feedService;
 
-        public StoriesController(IStoriesService storiesService)
+        public StoriesController(IStoriesService storiesService, IFeedService feedService)
         {
             _storiesService = storiesService;
+            _feedService = feedService;
         }
 
         [HttpPost]
@@ -33,6 +35,13 @@ namespace Clonogram.Controllers
             var guid = Guid.Parse(id);
             var storyView = await _storiesService.GetById(guid);
             return Ok(storyView);
+        }
+
+        public async Task<IActionResult> GetFeed()
+        {
+            var guid = Guid.Parse(HttpContext.User.Identity.Name);
+            var feed = await _feedService.GetStoryFeed(guid);
+            return Ok(feed);
         }
 
         public async Task<IActionResult> GetStoriesByUser(string userId)

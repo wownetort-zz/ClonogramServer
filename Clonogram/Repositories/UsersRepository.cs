@@ -11,7 +11,7 @@ namespace Clonogram.Repositories
     {
         public async Task<User> GetUserByName(string username)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -28,7 +28,7 @@ namespace Clonogram.Repositories
 
         public async Task<List<Guid>> GetAllUsersByName(string name)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -48,7 +48,7 @@ namespace Clonogram.Repositories
 
         public async Task<List<Guid>> GetAllSubscribers(Guid userId)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -69,7 +69,7 @@ namespace Clonogram.Repositories
 
         public async Task<List<Guid>> GetAllSubscriptions(Guid userId)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -90,7 +90,7 @@ namespace Clonogram.Repositories
 
         public async Task<User> GetUserById(Guid id)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -107,7 +107,7 @@ namespace Clonogram.Repositories
 
         public async Task AddUser(User user)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -133,7 +133,7 @@ namespace Clonogram.Repositories
 
         public async Task UpdateUser(User user)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -159,7 +159,7 @@ namespace Clonogram.Repositories
 
         public async Task DeleteUserById(Guid id)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -172,7 +172,7 @@ namespace Clonogram.Repositories
 
         public async Task Subscribe(Guid userId, Guid secondaryUserId)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {

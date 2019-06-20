@@ -11,7 +11,7 @@ namespace Clonogram.Repositories
     {
         public async Task<Photo> GetById(Guid id)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -28,7 +28,7 @@ namespace Clonogram.Repositories
 
         public async Task<List<Guid>> GetAllPhotos(Guid userId)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -49,7 +49,7 @@ namespace Clonogram.Repositories
 
         public async Task Upload(Photo photo)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -72,7 +72,7 @@ namespace Clonogram.Repositories
 
         public async Task Update(Photo photo)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -89,7 +89,7 @@ namespace Clonogram.Repositories
 
         public async Task Delete(Guid id)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -103,7 +103,7 @@ namespace Clonogram.Repositories
 
         public async Task Like(Guid userId, Guid photoId)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -119,7 +119,7 @@ namespace Clonogram.Repositories
 
         public async Task RemoveLike(Guid userId, Guid photoId)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -135,7 +135,7 @@ namespace Clonogram.Repositories
 
         public async Task<int> GetLikesCount(Guid photoId)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {

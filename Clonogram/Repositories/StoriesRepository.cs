@@ -11,7 +11,7 @@ namespace Clonogram.Repositories
     {
         public async Task<Story> GetById(Guid id)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -28,7 +28,7 @@ namespace Clonogram.Repositories
 
         public async Task<List<Guid>> GetAllStories(Guid userId)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -49,7 +49,7 @@ namespace Clonogram.Repositories
 
         public async Task Upload(Story story)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -62,14 +62,14 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_user_id", story.UserId);
             cmd.Parameters.AddWithValue("p_image_path", story.ImagePath);
             cmd.Parameters.AddWithValue("p_image_size", story.ImageSize);
-            cmd.Parameters.AddWithValue("p_date_created", DateTime.Now);
+            cmd.Parameters.AddWithValue("p_date_created", story.DateCreated);
 
             await cmd.ExecuteNonQueryAsync();
         }
 
         public async Task Delete(Guid id)
         {
-            using var conn = new NpgsqlConnection(Constants.ConnectionString);
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
