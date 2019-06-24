@@ -8,7 +8,7 @@ namespace Clonogram.Repositories
     public interface IPhotosRepository
     {
         Task<Photo> GetById(Guid id);
-        Task<List<Guid>> GetAllPhotos(Guid userId);
+        Task<List<Tuple<Guid, DateTime>>> GetAllPhotos(Guid userId);
         Task Update(Photo photo);
         Task Upload(Photo photo);
         Task Delete(Guid id);

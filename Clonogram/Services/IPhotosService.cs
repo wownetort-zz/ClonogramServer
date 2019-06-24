@@ -11,7 +11,7 @@ namespace Clonogram.Services
         Task Upload(IFormFile photo, PhotoView photoView);
         Task Delete(Guid userId, Guid photoId);
         Task<PhotoView> GetById(Guid id);
-        Task<List<Guid>> GetAllPhotos(Guid userId);
+        Task<List<Tuple<Guid, DateTime>>> GetAllPhotos(Guid userId);
         Task Update(PhotoView photoView);
         Task Like(Guid userId, Guid photoId);
         Task RemoveLike(Guid userId, Guid photoId);

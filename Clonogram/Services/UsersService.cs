@@ -14,15 +14,17 @@ namespace Clonogram.Services
     {
         private readonly IUsersRepository _usersRepository;
         private readonly ICryptographyService _cryptographyService;
+        private readonly IFeedService _feedService;
         private readonly IAmazonS3Repository _amazonS3Repository;
         private readonly IMapper _mapper;
 
-        public UsersService(IUsersRepository usersRepository, ICryptographyService cryptographyService, IMapper mapper, IAmazonS3Repository amazonS3Repository)
+        public UsersService(IUsersRepository usersRepository, ICryptographyService cryptographyService, IMapper mapper, IAmazonS3Repository amazonS3Repository, IFeedService feedService)
         {
             _usersRepository = usersRepository;
             _cryptographyService = cryptographyService;
             _mapper = mapper;
             _amazonS3Repository = amazonS3Repository;
+            _feedService = feedService;
         }
 
         public async Task<UserView> Authenticate(string username, string password)
@@ -132,7 +134,17 @@ namespace Clonogram.Services
             var secondaryUser = await _usersRepository.GetUserById(secondaryUserId);
             if (secondaryUser == null) throw new ArgumentException("User not found");
 
-            await _usersRepository.Subscribe(userId, secondaryUserId);
+            await Task.WhenAll(_usersRepository.Subscribe(userId, secondaryUserId), 
+                _feedService.AddAllUsersPhotoToFeed(userId, secondaryUserId));
+        }
+
+        public async Task Unsubscribe(Guid userId, Guid secondaryUserId)
+        {
+            var secondaryUser = await _usersRepository.GetUserById(secondaryUserId);
+            if (secondaryUser == null) throw new ArgumentException("User not found");
+
+            await Task.WhenAll(_usersRepository.Unsubscribe(userId, secondaryUserId),
+                _feedService.RemoveAllUsersPhotoFromFeed(userId, secondaryUserId));
         }
     }
 }

@@ -15,16 +15,14 @@ namespace Clonogram.Services
         private readonly IStoriesRepository _storiesRepository;
         private readonly IAmazonS3Repository _amazonS3Repository;
         private readonly IFeedService _feedService;
-        private readonly IRedisRepository _redisRepository;
         private readonly IMapper _mapper;
 
-        public StoriesService(IAmazonS3Repository amazonS3Repository, IMapper mapper, IStoriesRepository storiesRepository, IFeedService feedService, IRedisRepository redisRepository)
+        public StoriesService(IAmazonS3Repository amazonS3Repository, IMapper mapper, IStoriesRepository storiesRepository, IFeedService feedService)
         {
             _amazonS3Repository = amazonS3Repository;
             _mapper = mapper;
             _storiesRepository = storiesRepository;
             _feedService = feedService;
-            _redisRepository = redisRepository;
         }
 
         public async Task Upload(IFormFile photo, StoryView storyView)
@@ -49,7 +47,7 @@ namespace Clonogram.Services
 
             await Task.WhenAll(_amazonS3Repository.Delete(storyId.ToString()), 
                 _storiesRepository.Delete(storyId),
-                _redisRepository.RemoveStoryFromFeed(userId, storyId, storyDB.DateCreated));
+                _feedService.DeleteStoryFromFeed(userId, storyId, storyDB.DateCreated));
         }
 
         public async Task<StoryView> GetById(Guid id)

@@ -17,7 +17,7 @@ namespace Clonogram.Repositories
             {
                 Connection = conn,
                 CommandText =
-                    @"select id, username, email, password_hash, password_salt, first_name, last_name, description from users where username = @p_username"
+                    @"select id, avatar_path, username, email, password_hash, password_salt, first_name, last_name, description from users where username = @p_username"
             };
             cmd.Parameters.AddWithValue("p_username", username);
             var reader = await cmd.ExecuteReaderAsync();
@@ -183,6 +183,22 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_main_user_id", userId);
             cmd.Parameters.AddWithValue("p_secondary_user_id", secondaryUserId);
             cmd.Parameters.AddWithValue("p_status", 1);
+
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task Unsubscribe(Guid userId, Guid secondaryUserId)
+        {
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            conn.Open();
+            using var cmd = new NpgsqlCommand
+            {
+                Connection = conn,
+                CommandText =
+                    @"delete from users_relations where main_user_id = @p_main_user_id and secondary_user_id = @p_secondary_user_id"
+            };
+            cmd.Parameters.AddWithValue("p_main_user_id", userId);
+            cmd.Parameters.AddWithValue("p_secondary_user_id", secondaryUserId);
 
             await cmd.ExecuteNonQueryAsync();
         }

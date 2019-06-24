@@ -11,25 +11,50 @@ namespace Clonogram.Services
     {
         private readonly IUsersService _usersService;
         private readonly IRedisRepository _redisRepository;
+        private readonly IPhotosRepository _photosRepository;
 
-        public FeedService(IUsersService usersService, IRedisRepository redisRepository)
+        public FeedService(IUsersService usersService, IRedisRepository redisRepository, IPhotosRepository photosRepository)
         {
             _usersService = usersService;
             _redisRepository = redisRepository;
+            _photosRepository = photosRepository;
         }
 
-        public async Task AddPhotoToFeed(Guid userId, Guid photoId)
+        public async Task AddPhotoToFeed(Guid userId, Guid photoId, DateTime created)
         {
             var subscribers = await _usersService.GetAllSubscribers(userId);
-            await Task.WhenAll(subscribers.Select(x => _redisRepository.AddFeedPhoto(x, photoId)));
+            await Task.WhenAll(subscribers.Select(x => _redisRepository.AddFeedPhoto(x, photoId, created)));
         }
 
         public async Task AddStoryToFeed(Guid userId, Guid photoId, DateTime time)
         {
-            await _redisRepository.AddStoryFeedPhoto(userId, photoId, time);
+            await _redisRepository.AddFeedPhoto(userId, photoId, time);
         }
 
-        public async Task<IEnumerable<Guid>> GetFeed(Guid userId)
+        public async Task DeletePhotoFromFeed(Guid userId, Guid photoId, DateTime created)
+        {
+            var subscribers = await _usersService.GetAllSubscribers(userId);
+            await Task.WhenAll(subscribers.Select(x => _redisRepository.RemovePhotoFromFeed(x, photoId, created)));
+        }
+
+        public async Task DeleteStoryFromFeed(Guid userId, Guid photoId, DateTime created)
+        {
+            await _redisRepository.RemovePhotoFromFeed(userId, photoId, created);
+        }
+
+        public async Task AddAllUsersPhotoToFeed(Guid userId, Guid subscriptionId)
+        {
+            var photos = await _photosRepository.GetAllPhotos(subscriptionId);
+            await _redisRepository.AddAllUsersPhotoToFeed(userId, photos);
+        }
+
+        public async Task RemoveAllUsersPhotoFromFeed(Guid userId, Guid subscriptionId)
+        {
+            var photos = await _photosRepository.GetAllPhotos(subscriptionId);
+            await _redisRepository.RemoveAllUsersPhotoFromFeed(userId, photos);
+        }
+
+        public async Task<IEnumerable<Tuple<Guid, DateTime>>> GetFeed(Guid userId)
         {
             return await _redisRepository.GetFeed(userId);
         }

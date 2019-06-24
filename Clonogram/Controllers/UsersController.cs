@@ -127,5 +127,23 @@ namespace Clonogram.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Unsubscribe(string userId)
+        {
+            try
+            {
+                if (userId == HttpContext.User.Identity.Name) return BadRequest(new { message = "Can't unsubscribe from yourself" });
+                var userGuid = Guid.Parse(HttpContext.User.Identity.Name);
+                var secondaryGuid = Guid.Parse(userId);
+
+                await _usersService.Unsubscribe(userGuid, secondaryGuid);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

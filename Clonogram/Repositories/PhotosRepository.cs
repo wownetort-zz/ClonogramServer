@@ -26,22 +26,23 @@ namespace Clonogram.Repositories
             return next ? DataReaderMappers.MapToPhoto(reader) : null;
         }
 
-        public async Task<List<Guid>> GetAllPhotos(Guid userId)
+        public async Task<List<Tuple<Guid, DateTime>>> GetAllPhotos(Guid userId)
         {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
                 Connection = conn,
-                CommandText = @"select id from photos where user_id = @p_user_id and deleted = false order by date_created desc"
+                CommandText = @"select id, date_created from photos where user_id = @p_user_id and deleted = false order by date_created desc"
             };
             cmd.Parameters.AddWithValue("p_user_id", userId);
             var reader = await cmd.ExecuteReaderAsync();
 
-            var photos = new List<Guid>();
+            var photos = new List<Tuple<Guid, DateTime>>();
             while (await reader.ReadAsync())
             {
-                photos.Add(reader.GetGuid(0));
+                var photo = new Tuple<Guid, DateTime>(reader.GetGuid(0), reader.GetDateTime(1));
+                photos.Add(photo);
             }
 
             return photos;
@@ -64,8 +65,8 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_geo", photo.Geo);
             cmd.Parameters.AddWithValue("p_image_path", photo.ImagePath);
             cmd.Parameters.AddWithValue("p_image_size", photo.ImageSize);
-            cmd.Parameters.AddWithValue("p_date_updated", DateTime.Now);
-            cmd.Parameters.AddWithValue("p_date_created", DateTime.Now);
+            cmd.Parameters.AddWithValue("p_date_updated", photo.DateCreated);
+            cmd.Parameters.AddWithValue("p_date_created", photo.DateCreated);
 
             await cmd.ExecuteNonQueryAsync();
         }

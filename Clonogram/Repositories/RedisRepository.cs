@@ -15,36 +15,56 @@ namespace Clonogram.Repositories
             _connection = ConnectionMultiplexer.Connect(Constants.RedisConnectionString);
         }
 
-        public async Task AddFeedPhoto(Guid userId, Guid photoId)
+        public async Task AddFeedPhoto(Guid userId, Guid photoId, DateTime created)
         {
             var conn = _connection.GetDatabase();
-            await conn.ListLeftPushAsync(userId.ToString(), photoId.ToString());
+            var photo = JsonConvert.SerializeObject(new { id = photoId.ToString(), time = created });
+            await conn.ListLeftPushAsync(userId.ToString(), photo);
         }
 
-        public async Task AddStoryFeedPhoto(Guid userId, Guid photoId, DateTime created)
+        public async Task AddAllUsersPhotoToFeed(Guid userId, List<Tuple<Guid, DateTime>> photos)
         {
             var conn = _connection.GetDatabase();
-            var story = JsonConvert.SerializeObject(new {id = photoId.ToString(), time = created });
-            await conn.ListLeftPushAsync(userId.ToString(), story);
+            var feedPhotos = (await GetFeed(userId)).ToList();
+
+            int j = 0;
+            foreach (var tuplePhoto in photos)
+            {
+                while (j < feedPhotos.Count && tuplePhoto.Item2 < feedPhotos[j].Item2)
+                {
+                    j++;
+                }
+                var newPhoto = JsonConvert.SerializeObject(new { id = tuplePhoto.Item1, time = tuplePhoto.Item2 });
+                if (j == feedPhotos.Count)
+                {
+                    await conn.ListRightPushAsync(userId.ToString(), newPhoto);
+                }
+                else
+                {
+                    var photo = JsonConvert.SerializeObject(new {id = feedPhotos[j].Item1, time = feedPhotos[j].Item2});
+                    await conn.ListInsertBeforeAsync(userId.ToString(), photo, newPhoto);
+                }
+            }
         }
 
-        public async Task RemovePhotoFromFeed(Guid userId, Guid photoId)
+        public async Task RemoveAllUsersPhotoFromFeed(Guid userId, List<Tuple<Guid, DateTime>> photos)
         {
-            var conn = _connection.GetDatabase();
-            await conn.ListRemoveAsync(userId.ToString(), photoId.ToString());
+            await Task.WhenAll(photos.Select(x => RemovePhotoFromFeed(userId, x.Item1, x.Item2)));
         }
 
-        public async Task RemoveStoryFromFeed(Guid userId, Guid photoId, DateTime created)
+        public async Task RemovePhotoFromFeed(Guid userId, Guid photoId, DateTime created)
         {
             var conn = _connection.GetDatabase();
-            var story = JsonConvert.SerializeObject(new { id = photoId.ToString(), time = created });
-            await conn.ListRemoveAsync(userId.ToString(), story);
+            var photo = JsonConvert.SerializeObject(new { id = photoId.ToString(), time = created });
+            await conn.ListRemoveAsync(userId.ToString(), photo);
         }
 
-        public async Task<IEnumerable<Guid>> GetFeed(Guid userId)
+        public async Task<IEnumerable<Tuple<Guid, DateTime>>> GetFeed(Guid userId)
         {
             var conn = _connection.GetDatabase();
-            return (await conn.ListRangeAsync(userId.ToString())).Select(x => Guid.Parse(x.ToString()));
+            var photos = await conn.ListRangeAsync(userId.ToString());
+
+            return photos.Select(x => JsonConvert.DeserializeObject<Tuple<Guid, DateTime>>(x));
         }
 
         public async Task<List<Guid>> GetStoryFeed(Guid userId)

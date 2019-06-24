@@ -16,17 +16,15 @@ namespace Clonogram.Services
         private readonly IAmazonS3Repository _amazonS3Repository;
         private readonly IHashtagsService _hashtagsService;
         private readonly IFeedService _feedService;
-        private readonly IRedisRepository _redisRepository;
         private readonly IMapper _mapper;
 
-        public PhotosService(IPhotosRepository photosRepository, IAmazonS3Repository amazonS3Repository, IHashtagsService hashtagsService, IMapper mapper, IFeedService feedService, IRedisRepository redisRepository)
+        public PhotosService(IPhotosRepository photosRepository, IAmazonS3Repository amazonS3Repository, IHashtagsService hashtagsService, IMapper mapper, IFeedService feedService)
         {
             _photosRepository = photosRepository;
             _amazonS3Repository = amazonS3Repository;
             _hashtagsService = hashtagsService;
             _mapper = mapper;
             _feedService = feedService;
-            _redisRepository = redisRepository;
         }
 
         public async Task Upload(IFormFile photo, PhotoView photoView)
@@ -37,10 +35,11 @@ namespace Clonogram.Services
             var photoModel = _mapper.Map<Photo>(photoView);
             photoModel.Id = photoId;
             photoModel.ImagePath = $"{Constants.ServiceURL}/{Constants.BucketName}/{photoId.ToString()}";
+            photoModel.DateCreated = DateTime.Now;
 
             await Task.WhenAll(_photosRepository.Upload(photoModel),
                 _hashtagsService.AddNewHashtags(photoId, photoModel.Description),
-                _feedService.AddPhotoToFeed(photoModel.UserId, photoId));
+                _feedService.AddPhotoToFeed(photoModel.UserId, photoId, photoModel.DateCreated));
         }
 
         public async Task Delete(Guid userId, Guid photoId)
@@ -50,7 +49,7 @@ namespace Clonogram.Services
             if (photoDB.UserId != userId) throw new ArgumentException("Photo doesn't belong to user");
 
             await Task.WhenAll(_photosRepository.Delete(photoId),
-                _redisRepository.RemovePhotoFromFeed(userId, photoId));
+                _feedService.DeletePhotoFromFeed(userId, photoId, photoDB.DateCreated));
         }
 
         public async Task<PhotoView> GetById(Guid id)
@@ -60,7 +59,7 @@ namespace Clonogram.Services
             return photoView;
         }
 
-        public async Task<List<Guid>> GetAllPhotos(Guid userId)
+        public async Task<List<Tuple<Guid, DateTime>>> GetAllPhotos(Guid userId)
         {
             return await _photosRepository.GetAllPhotos(userId);
         }

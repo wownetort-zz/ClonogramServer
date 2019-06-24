@@ -17,5 +17,6 @@ namespace Clonogram.Services
         Task Update(UserView userView, IFormFile avatar = null);
         Task Delete(Guid id);
         Task Subscribe(Guid userId, Guid secondaryUserId);
+        Task Unsubscribe(Guid userId, Guid secondaryUserId);
     }
 }
