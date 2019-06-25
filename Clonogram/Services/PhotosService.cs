@@ -39,7 +39,7 @@ namespace Clonogram.Services
 
             await Task.WhenAll(_photosRepository.Upload(photoModel),
                 _hashtagsService.AddNewHashtags(photoId, photoModel.Description),
-                _feedService.AddPhotoToFeed(photoModel.UserId, photoId, photoModel.DateCreated));
+                _feedService.AddPhotoToFeed(photoModel.UserId, photoModel));
         }
 
         public async Task Delete(Guid userId, Guid photoId)
@@ -49,7 +49,7 @@ namespace Clonogram.Services
             if (photoDB.UserId != userId) throw new ArgumentException("Photo doesn't belong to user");
 
             await Task.WhenAll(_photosRepository.Delete(photoId),
-                _feedService.DeletePhotoFromFeed(userId, photoId, photoDB.DateCreated));
+                _feedService.DeletePhotoFromFeed(userId, photoDB));
         }
 
         public async Task<PhotoView> GetById(Guid id)
@@ -59,7 +59,7 @@ namespace Clonogram.Services
             return photoView;
         }
 
-        public async Task<List<Tuple<Guid, DateTime>>> GetAllPhotos(Guid userId)
+        public async Task<List<RedisPhoto>> GetAllPhotos(Guid userId)
         {
             return await _photosRepository.GetAllPhotos(userId);
         }

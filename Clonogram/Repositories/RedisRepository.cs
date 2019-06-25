@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Clonogram.Models;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 
@@ -15,14 +16,14 @@ namespace Clonogram.Repositories
             _connection = ConnectionMultiplexer.Connect(Constants.RedisConnectionString);
         }
 
-        public async Task AddFeedPhoto(Guid userId, Guid photoId, DateTime created)
+        public async Task AddFeedPhoto(Guid userId, RedisPhoto photo)
         {
             var conn = _connection.GetDatabase();
-            var photo = JsonConvert.SerializeObject(new { id = photoId.ToString(), time = created });
-            await conn.ListLeftPushAsync(userId.ToString(), photo);
+            var jsonPhoto = JsonConvert.SerializeObject(photo);
+            await conn.ListLeftPushAsync(userId.ToString(), jsonPhoto);
         }
 
-        public async Task AddAllUsersPhotoToFeed(Guid userId, List<Tuple<Guid, DateTime>> photos)
+        public async Task AddAllUsersPhotoToFeed(Guid userId, List<RedisPhoto> photos)
         {
             var conn = _connection.GetDatabase();
             var feedPhotos = (await GetFeed(userId)).ToList();
@@ -30,41 +31,41 @@ namespace Clonogram.Repositories
             int j = 0;
             foreach (var tuplePhoto in photos)
             {
-                while (j < feedPhotos.Count && tuplePhoto.Item2 < feedPhotos[j].Item2)
+                while (j < feedPhotos.Count && tuplePhoto.Time < feedPhotos[j].Time)
                 {
                     j++;
                 }
-                var newPhoto = JsonConvert.SerializeObject(new { id = tuplePhoto.Item1, time = tuplePhoto.Item2 });
+                var newPhoto = JsonConvert.SerializeObject(tuplePhoto);
                 if (j == feedPhotos.Count)
                 {
                     await conn.ListRightPushAsync(userId.ToString(), newPhoto);
                 }
                 else
                 {
-                    var photo = JsonConvert.SerializeObject(new {id = feedPhotos[j].Item1, time = feedPhotos[j].Item2});
+                    var photo = JsonConvert.SerializeObject(feedPhotos);
                     await conn.ListInsertBeforeAsync(userId.ToString(), photo, newPhoto);
                 }
             }
         }
 
-        public async Task RemoveAllUsersPhotoFromFeed(Guid userId, List<Tuple<Guid, DateTime>> photos)
+        public async Task RemoveAllUsersPhotoFromFeed(Guid userId, List<RedisPhoto> photos)
         {
-            await Task.WhenAll(photos.Select(x => RemovePhotoFromFeed(userId, x.Item1, x.Item2)));
+            await Task.WhenAll(photos.Select(x => RemovePhotoFromFeed(userId, x)));
         }
 
-        public async Task RemovePhotoFromFeed(Guid userId, Guid photoId, DateTime created)
+        public async Task RemovePhotoFromFeed(Guid userId, RedisPhoto photo)
         {
             var conn = _connection.GetDatabase();
-            var photo = JsonConvert.SerializeObject(new { id = photoId.ToString(), time = created });
-            await conn.ListRemoveAsync(userId.ToString(), photo);
+            var jsonPhoto = JsonConvert.SerializeObject(photo);
+            await conn.ListRemoveAsync(userId.ToString(), jsonPhoto);
         }
 
-        public async Task<IEnumerable<Tuple<Guid, DateTime>>> GetFeed(Guid userId)
+        public async Task<IEnumerable<RedisPhoto>> GetFeed(Guid userId)
         {
             var conn = _connection.GetDatabase();
             var photos = await conn.ListRangeAsync(userId.ToString());
 
-            return photos.Select(x => JsonConvert.DeserializeObject<Tuple<Guid, DateTime>>(x));
+            return photos.Select(x => JsonConvert.DeserializeObject<RedisPhoto>(x));
         }
 
         public async Task<List<Guid>> GetStoryFeed(Guid userId)
@@ -77,10 +78,10 @@ namespace Clonogram.Repositories
             var iterator = 0;
             for (;iterator < stories.Length; iterator++)
             {
-                var (guid, time) = JsonConvert.DeserializeObject<Tuple<Guid, DateTime>>(stories[iterator]);
-                if (time > timeMax)
+                var story = JsonConvert.DeserializeObject<RedisPhoto>(stories[iterator]);
+                if (story.Time > timeMax)
                 {
-                    guids.Add(guid);
+                    guids.Add(story.Id);
                 }
                 else
                 {

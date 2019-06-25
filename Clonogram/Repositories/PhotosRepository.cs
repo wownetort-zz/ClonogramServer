@@ -26,7 +26,7 @@ namespace Clonogram.Repositories
             return next ? DataReaderMappers.MapToPhoto(reader) : null;
         }
 
-        public async Task<List<Tuple<Guid, DateTime>>> GetAllPhotos(Guid userId)
+        public async Task<List<RedisPhoto>> GetAllPhotos(Guid userId)
         {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
@@ -38,10 +38,14 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_user_id", userId);
             var reader = await cmd.ExecuteReaderAsync();
 
-            var photos = new List<Tuple<Guid, DateTime>>();
+            var photos = new List<RedisPhoto>();
             while (await reader.ReadAsync())
             {
-                var photo = new Tuple<Guid, DateTime>(reader.GetGuid(0), reader.GetDateTime(1));
+                var photo = new RedisPhoto
+                {
+                    Id = reader.GetGuid(0),
+                    Time = reader.GetDateTime(1)
+                };
                 photos.Add(photo);
             }
 

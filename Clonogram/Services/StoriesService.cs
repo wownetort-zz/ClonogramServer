@@ -35,7 +35,7 @@ namespace Clonogram.Services
             storyModel.DateCreated = DateTime.Now;
 
             await Task.WhenAll(_storiesRepository.Upload(storyModel),
-                _feedService.AddStoryToFeed(storyModel.UserId, storyId, storyModel.DateCreated), 
+                _feedService.AddStoryToFeed(storyModel.UserId, storyModel), 
                 _amazonS3Repository.Upload(photo, storyId.ToString()));
         }
 
@@ -47,7 +47,7 @@ namespace Clonogram.Services
 
             await Task.WhenAll(_amazonS3Repository.Delete(storyId.ToString()), 
                 _storiesRepository.Delete(storyId),
-                _feedService.DeleteStoryFromFeed(userId, storyId, storyDB.DateCreated));
+                _feedService.DeleteStoryFromFeed(userId, storyDB));
         }
 
         public async Task<StoryView> GetById(Guid id)

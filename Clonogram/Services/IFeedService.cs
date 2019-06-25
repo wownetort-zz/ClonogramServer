@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Clonogram.Models;
 
 namespace Clonogram.Services
 {
     public interface IFeedService
     {
-        Task AddPhotoToFeed(Guid userId, Guid photoId, DateTime created);
-        Task AddStoryToFeed(Guid userId, Guid photoId, DateTime time);
-        Task DeletePhotoFromFeed(Guid userId, Guid photoId, DateTime created);
-        Task DeleteStoryFromFeed(Guid userId, Guid photoId, DateTime created);
+        Task AddPhotoToFeed(Guid userId, Photo photo);
+        Task AddStoryToFeed(Guid userId, Story story);
+        Task DeletePhotoFromFeed(Guid userId, Photo photo);
+        Task DeleteStoryFromFeed(Guid userId, Story story);
         Task AddAllUsersPhotoToFeed(Guid userId, Guid subscriptionId);
         Task RemoveAllUsersPhotoFromFeed(Guid userId, Guid subscriptionId);
-        Task<IEnumerable<Tuple<Guid, DateTime>>> GetFeed(Guid userId);
+        Task<IEnumerable<RedisPhoto>> GetFeed(Guid userId);
         Task<IEnumerable<Guid>> GetStoryFeed(Guid userId);
     }
 }
