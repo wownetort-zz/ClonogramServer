@@ -26,6 +26,23 @@ namespace Clonogram.Repositories
             return next ? DataReaderMappers.MapToUser(reader) : null;
         }
 
+        public async Task<User> GetUserByEmail(string email)
+        {
+            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            conn.Open();
+            using var cmd = new NpgsqlCommand
+            {
+                Connection = conn,
+                CommandText =
+                    @"select id, avatar_path, username, email, password_hash, password_salt, first_name, last_name, description from users where email = @p_email"
+            };
+            cmd.Parameters.AddWithValue("p_email", email);
+            var reader = await cmd.ExecuteReaderAsync();
+
+            var next = await reader.ReadAsync();
+            return next ? DataReaderMappers.MapToUser(reader) : null;
+        }
+
         public async Task<List<Guid>> GetAllUsersByName(string name)
         {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);

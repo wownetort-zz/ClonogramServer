@@ -32,8 +32,11 @@ namespace Clonogram.Services
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password)) return null;
 
             var user = await _usersRepository.GetUserByName(username);
-
-            if (user == null) return null;
+            if (user == null)
+            {
+                user = await _usersRepository.GetUserByEmail(username);
+                if (user == null) return null;
+            }
 
             if (!_cryptographyService.VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt)) return null;
 
@@ -69,6 +72,7 @@ namespace Clonogram.Services
             if (string.IsNullOrWhiteSpace(userView.Password)) throw new ArgumentException("Password is required");
             if (userView.Username.Length < 3) throw new ArgumentException("Username length < 3");
             if (await _usersRepository.GetUserByName(userView.Username) != null) throw new ArgumentException("Username \"" + userView.Username + "\" is already taken");
+            if (await _usersRepository.GetUserByEmail(userView.Email) != null) throw new ArgumentException("Email \"" + userView.Email + "\" is already taken");
 
             _cryptographyService.CreatePasswordHash(userView.Password, out var passwordHash, out var passwordSalt);
 
@@ -96,6 +100,10 @@ namespace Clonogram.Services
             if (userDB.Username != user.Username)
             {
                 if (await _usersRepository.GetUserByName(user.Username) != null) throw new ArgumentException("Username \"" + user.Username + "\" is already taken");
+            }
+            if (userDB.Email != user.Email)
+            {
+                if (await _usersRepository.GetUserByEmail(user.Email) != null) throw new ArgumentException("Email \"" + user.Email + "\" is already taken");
             }
 
             if (!string.IsNullOrWhiteSpace(userView.FirstName)) userDB.FirstName = userView.FirstName;
