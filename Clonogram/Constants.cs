@@ -1,4 +1,6 @@
-﻿namespace Clonogram
+﻿using System;
+
+namespace Clonogram
 {
     public static class Constants
     {
@@ -11,5 +13,11 @@
         public static string SecretKey = "zAQAnjAq6dAMZ8xKobsqe9O5Hriskcpp0LXxDp2O";
         public static string BucketName = "clonogram-photos";
         public static string ServiceURL = "https://storage.yandexcloud.net";
+    }
+
+    public static class Cache
+    {
+        public static TimeSpan Comment = TimeSpan.FromDays(365);
+        public static TimeSpan Comments = TimeSpan.FromDays(365);
     }
 }

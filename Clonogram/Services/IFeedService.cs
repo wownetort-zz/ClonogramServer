@@ -13,7 +13,9 @@ namespace Clonogram.Services
         Task DeleteStoryFromFeed(Guid userId, Story story);
         Task AddAllUsersPhotoToFeed(Guid userId, Guid subscriptionId);
         Task RemoveAllUsersPhotoFromFeed(Guid userId, Guid subscriptionId);
+        //1min
         Task<IEnumerable<RedisPhoto>> GetFeed(Guid userId);
+        //1min
         Task<IEnumerable<Guid>> GetStoryFeed(Guid userId);
     }
 }
