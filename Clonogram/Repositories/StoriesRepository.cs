@@ -3,13 +3,30 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Clonogram.Helpers;
 using Clonogram.Models;
+using Microsoft.Extensions.Caching.Memory;
 using Npgsql;
 
 namespace Clonogram.Repositories
 {
     public class StoriesRepository : IStoriesRepository
     {
+        private readonly IMemoryCache _memoryCache;
+
+        public StoriesRepository(IMemoryCache memoryCache)
+        {
+            _memoryCache = memoryCache;
+        }
+
         public async Task<Story> GetById(Guid id)
+        {
+            return await _memoryCache.GetOrCreateAsync(id, async x =>
+            {
+                x.AbsoluteExpirationRelativeToNow = Cache.Story;
+                return await GetStoryById(id);
+            });
+        }
+
+        private static async Task<Story> GetStoryById(Guid id)
         {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
@@ -65,6 +82,7 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_date_created", story.DateCreated);
 
             await cmd.ExecuteNonQueryAsync();
+            _memoryCache.Set(story.Id, story, Cache.Story);
         }
 
         public async Task Delete(Guid id)
@@ -79,6 +97,7 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_id", id);
 
             await cmd.ExecuteNonQueryAsync();
+            _memoryCache.Remove(id);
         }
     }
 }

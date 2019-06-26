@@ -11,7 +11,7 @@ namespace Clonogram.Repositories
         Task<List<RedisPhoto>> GetAllPhotos(Guid userId);
         Task Update(Photo photo);
         Task Upload(Photo photo);
-        Task Delete(Guid id);
+        Task Delete(Photo photo);
         Task Like(Guid userId, Guid photoId);
         Task RemoveLike(Guid userId, Guid photoId);
         Task<int> GetLikesCount(Guid photoId);

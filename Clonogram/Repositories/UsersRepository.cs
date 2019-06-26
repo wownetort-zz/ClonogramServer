@@ -3,12 +3,20 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Clonogram.Helpers;
 using Clonogram.Models;
+using Microsoft.Extensions.Caching.Memory;
 using Npgsql;
 
 namespace Clonogram.Repositories
 {
     public class UsersRepository : IUsersRepository
     {
+        private readonly IMemoryCache _memoryCache;
+
+        public UsersRepository(IMemoryCache memoryCache)
+        {
+            _memoryCache = memoryCache;
+        }
+
         public async Task<User> GetUserByName(string username)
         {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
@@ -45,6 +53,15 @@ namespace Clonogram.Repositories
 
         public async Task<List<Guid>> GetAllUsersByName(string name)
         {
+            return await _memoryCache.GetOrCreateAsync($"{name} name", async x =>
+            {
+                x.AbsoluteExpirationRelativeToNow = Cache.Users;
+                return await GetUsersByName(name);
+            });
+        }
+
+        private static async Task<List<Guid>> GetUsersByName(string name)
+        {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
@@ -64,6 +81,15 @@ namespace Clonogram.Repositories
         }
 
         public async Task<List<Guid>> GetAllSubscribers(Guid userId)
+        {
+            return await _memoryCache.GetOrCreateAsync($"{userId} subscribers", async x =>
+            {
+                x.AbsoluteExpirationRelativeToNow = Cache.UserSubscribers;
+                return await GetSubscribers(userId);
+            });
+        }
+
+        private static async Task<List<Guid>> GetSubscribers(Guid userId)
         {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
@@ -86,6 +112,15 @@ namespace Clonogram.Repositories
 
         public async Task<List<Guid>> GetAllSubscriptions(Guid userId)
         {
+            return await _memoryCache.GetOrCreateAsync($"{userId} subscriptions", async x =>
+            {
+                x.AbsoluteExpirationRelativeToNow = Cache.UserSubscriptions;
+                return await GetSubscriptions(userId);
+            });
+        }
+
+        private static async Task<List<Guid>> GetSubscriptions(Guid userId)
+        {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
@@ -106,6 +141,15 @@ namespace Clonogram.Repositories
         }
 
         public async Task<User> GetUserById(Guid id)
+        {
+            return await _memoryCache.GetOrCreateAsync(id, async x =>
+            {
+                x.AbsoluteExpirationRelativeToNow = Cache.User;
+                return await GetUserByGuid(id);
+            });
+        }
+
+        private static async Task<User> GetUserByGuid(Guid id)
         {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
@@ -146,6 +190,7 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_date_created", DateTime.Now);
 
             await cmd.ExecuteNonQueryAsync();
+            _memoryCache.Set(user.Id, user, Cache.User);
         }
 
         public async Task UpdateUser(User user)
@@ -172,6 +217,7 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_date_updated", DateTime.Now);
 
             await cmd.ExecuteNonQueryAsync();
+            _memoryCache.Set(user.Id, user, Cache.User);
         }
 
         public async Task DeleteUserById(Guid id)
@@ -185,6 +231,7 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_id", id);
 
             await cmd.ExecuteNonQueryAsync();
+            _memoryCache.Remove(id);
         }
 
         public async Task Subscribe(Guid userId, Guid secondaryUserId)
@@ -202,6 +249,19 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_status", 1);
 
             await cmd.ExecuteNonQueryAsync();
+
+            var subscribersKey = $"{secondaryUserId} subscribers";
+            if (_memoryCache.TryGetValue(subscribersKey, out List<Guid> subscribers))
+            {
+                subscribers.Add(userId);
+                _memoryCache.Set(subscribersKey, subscribers, Cache.UserSubscribers);
+            }
+            var subscriptionsKey = $"{userId} subscriptions";
+            if (_memoryCache.TryGetValue(subscriptionsKey, out List<Guid> subscriptions))
+            {
+                subscriptions.Add(secondaryUserId);
+                _memoryCache.Set(subscriptionsKey, subscriptions, Cache.UserSubscriptions);
+            }
         }
 
         public async Task Unsubscribe(Guid userId, Guid secondaryUserId)
@@ -218,6 +278,19 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_secondary_user_id", secondaryUserId);
 
             await cmd.ExecuteNonQueryAsync();
+
+            var subscribersKey = $"{secondaryUserId} subscribers";
+            if (_memoryCache.TryGetValue(subscribersKey, out List<Guid> subscribers))
+            {
+                subscribers.Remove(userId);
+                _memoryCache.Set(subscribersKey, subscribers, Cache.UserSubscribers);
+            }
+            var subscriptionsKey = $"{userId} subscriptions";
+            if (_memoryCache.TryGetValue(subscriptionsKey, out List<Guid> subscriptions))
+            {
+                subscriptions.Remove(secondaryUserId);
+                _memoryCache.Set(subscriptionsKey, subscriptions, Cache.UserSubscriptions);
+            }
         }
     }
 }

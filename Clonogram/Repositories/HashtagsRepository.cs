@@ -1,13 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using Npgsql;
 
 namespace Clonogram.Repositories
 {
     public class HashtagsRepository : IHashtagsRepository
     {
+        private readonly IMemoryCache _memoryCache;
+
+        public HashtagsRepository(IMemoryCache memoryCache)
+        {
+            _memoryCache = memoryCache;
+        }
+
         public async Task<List<Guid>> GetPhotos(Guid hashtagId)
+        {
+            return await _memoryCache.GetOrCreateAsync(hashtagId, async x =>
+            {
+                x.AbsoluteExpirationRelativeToNow = Cache.Hashtags;
+                return await GetPhotosByHashtag(hashtagId);
+            });
+        }
+
+        private static async Task<List<Guid>> GetPhotosByHashtag(Guid hashtagId)
         {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();

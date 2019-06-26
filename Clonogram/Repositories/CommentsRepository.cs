@@ -3,12 +3,20 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Clonogram.Helpers;
 using Clonogram.Models;
+using Microsoft.Extensions.Caching.Memory;
 using Npgsql;
 
 namespace Clonogram.Repositories
 {
     public class CommentsRepository : ICommentsRepository
     {
+        private readonly IMemoryCache _memoryCache;
+
+        public CommentsRepository(IMemoryCache memoryCache)
+        {
+            _memoryCache = memoryCache;
+        }
+
         public async Task Create(Comment comment)
         {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
@@ -28,9 +36,27 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_date_created", DateTime.Now);
 
             await cmd.ExecuteNonQueryAsync();
+
+            _memoryCache.Set(comment.Id, comment, Cache.Comment);
+
+            var commentsKey = $"{comment.PhotoId.ToString()} Comments";
+            if (_memoryCache.TryGetValue(commentsKey, out List<Guid> comments))
+            {
+                comments.Add(comment.Id);
+                _memoryCache.Set(commentsKey, comments, Cache.Comments);
+            }
         }
 
         public async Task<Comment> GetById(Guid id)
+        {
+            return await _memoryCache.GetOrCreateAsync(id, async x =>
+            {
+                x.AbsoluteExpirationRelativeToNow = Cache.Comment;
+                return await GetCommentById(id);
+            });
+        }
+
+        private static async Task<Comment> GetCommentById(Guid id)
         {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
@@ -48,6 +74,15 @@ namespace Clonogram.Repositories
         }
 
         public async Task<List<Guid>> GetAllPhotosComments(Guid photoId)
+        {
+            return await _memoryCache.GetOrCreateAsync($"{photoId.ToString()} Comments", async x =>
+            {
+                x.AbsoluteExpirationRelativeToNow = Cache.Comments;
+                return await GetPhotosComments(photoId);
+            });
+        }
+
+        private static async Task<List<Guid>> GetPhotosComments(Guid photoId)
         {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
@@ -83,9 +118,10 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_date_updated", DateTime.Now);
 
             await cmd.ExecuteNonQueryAsync();
+            _memoryCache.Set(comment.Id, comment, Cache.Comment);
         }
 
-        public async Task Delete(Guid id)
+        public async Task Delete(Comment comment)
         {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
@@ -94,9 +130,17 @@ namespace Clonogram.Repositories
                 Connection = conn,
                 CommandText = @"delete from comments where id = @p_id"
             };
-            cmd.Parameters.AddWithValue("p_id", id);
+            cmd.Parameters.AddWithValue("p_id", comment.Id);
 
             await cmd.ExecuteNonQueryAsync();
+
+            _memoryCache.Remove(comment.Id);
+            var commentsKey = $"{comment.PhotoId.ToString()} Comments";
+            if (_memoryCache.TryGetValue(commentsKey, out List<Guid> comments))
+            {
+                comments.Remove(comment.Id);
+                _memoryCache.Set(commentsKey, comments, Cache.Comments);
+            }
         }
     }
 }

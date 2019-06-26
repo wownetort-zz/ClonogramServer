@@ -13,6 +13,6 @@ namespace Clonogram.Repositories
 
         Task Update(Comment comment);
 
-        Task Delete(Guid id);
+        Task Delete(Comment comment);
     }
 }

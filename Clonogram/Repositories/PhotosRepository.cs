@@ -3,13 +3,30 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Clonogram.Helpers;
 using Clonogram.Models;
+using Microsoft.Extensions.Caching.Memory;
 using Npgsql;
 
 namespace Clonogram.Repositories
 {
     public class PhotosRepository : IPhotosRepository
     {
+        private readonly IMemoryCache _memoryCache;
+
+        public PhotosRepository(IMemoryCache memoryCache)
+        {
+            _memoryCache = memoryCache;
+        }
+
         public async Task<Photo> GetById(Guid id)
+        {
+            return await _memoryCache.GetOrCreateAsync(id, async x =>
+            {
+                x.AbsoluteExpirationRelativeToNow = Cache.Photo;
+                return await GetPhotoById(id);
+            });
+        }
+
+        private static async Task<Photo> GetPhotoById(Guid id)
         {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
@@ -28,12 +45,22 @@ namespace Clonogram.Repositories
 
         public async Task<List<RedisPhoto>> GetAllPhotos(Guid userId)
         {
+            return await _memoryCache.GetOrCreateAsync($"{userId} Photos", async x =>
+            {
+                x.AbsoluteExpirationRelativeToNow = Cache.UserPhotos;
+                return await GetAllUserPhotos(userId);
+            });
+        }
+
+        private static async Task<List<RedisPhoto>> GetAllUserPhotos(Guid userId)
+        {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
                 Connection = conn,
-                CommandText = @"select id, date_created from photos where user_id = @p_user_id and deleted = false order by date_created desc"
+                CommandText =
+                    @"select id, date_created from photos where user_id = @p_user_id and deleted = false order by date_created desc"
             };
             cmd.Parameters.AddWithValue("p_user_id", userId);
             var reader = await cmd.ExecuteReaderAsync();
@@ -73,6 +100,19 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_date_created", photo.DateCreated);
 
             await cmd.ExecuteNonQueryAsync();
+
+            _memoryCache.Set(photo.Id, photo, Cache.Photo);
+
+            var photosKey = $"{photo.UserId} Photos";
+            if (_memoryCache.TryGetValue(photosKey, out List<RedisPhoto> photos))
+            {
+                photos.Insert(0, new RedisPhoto
+                {
+                    Id = photo.Id,
+                    Time = photo.DateCreated
+                });
+                _memoryCache.Set(photosKey, photos, Cache.UserPhotos);
+            }
         }
 
         public async Task Update(Photo photo)
@@ -90,9 +130,10 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_date_updated", DateTime.Now);
 
             await cmd.ExecuteNonQueryAsync();
+            _memoryCache.Set(photo.Id, photo, Cache.Photo);
         }
 
-        public async Task Delete(Guid id)
+        public async Task Delete(Photo photo)
         {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
@@ -101,9 +142,17 @@ namespace Clonogram.Repositories
                 Connection = conn,
                 CommandText = @"update photos set deleted = true where id = @p_id"
             };
-            cmd.Parameters.AddWithValue("p_id", id);
+            cmd.Parameters.AddWithValue("p_id", photo.Id);
 
             await cmd.ExecuteNonQueryAsync();
+
+            _memoryCache.Remove(photo.Id);
+            var photosKey = $"{photo.UserId} Photos";
+            if (_memoryCache.TryGetValue(photosKey, out List<RedisPhoto> photos))
+            {
+                photos.RemoveAt(photos.FindIndex(x => x.Id == photo.Id));
+                _memoryCache.Set(photosKey, photos, Cache.UserPhotos);
+            }
         }
 
         public async Task Like(Guid userId, Guid photoId)
@@ -120,6 +169,13 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_user_id", userId);
 
             await cmd.ExecuteNonQueryAsync();
+
+            var likesKey = $"{photoId} Likes";
+            if (_memoryCache.TryGetValue(likesKey, out int likes))
+            {
+                likes++;
+                _memoryCache.Set(likesKey, likes, Cache.Likes);
+            }
         }
 
         public async Task RemoveLike(Guid userId, Guid photoId)
@@ -136,9 +192,25 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_user_id", userId);
 
             await cmd.ExecuteNonQueryAsync();
+
+            var likesKey = $"{photoId} Likes";
+            if (_memoryCache.TryGetValue(likesKey, out int likes))
+            {
+                likes--;
+                _memoryCache.Set(likesKey, likes, Cache.Likes);
+            }
         }
 
         public async Task<int> GetLikesCount(Guid photoId)
+        {
+            return await _memoryCache.GetOrCreateAsync($"{photoId} Likes", async x =>
+            {
+                x.AbsoluteExpirationRelativeToNow = Cache.Likes;
+                return await GetPhotoLikesCount(photoId);
+            });
+        }
+
+        private static async Task<int> GetPhotoLikesCount(Guid photoId)
         {
             using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
             conn.Open();
