@@ -19,5 +19,14 @@ namespace Clonogram
     {
         public static TimeSpan Comment = TimeSpan.FromDays(365);
         public static TimeSpan Comments = TimeSpan.FromDays(365);
+        public static TimeSpan Hashtags = TimeSpan.FromMinutes(30);
+        public static TimeSpan Likes = TimeSpan.FromDays(365);
+        public static TimeSpan Photo = TimeSpan.FromDays(365);
+        public static TimeSpan UserPhotos = TimeSpan.FromDays(365);
+        public static TimeSpan Story = TimeSpan.FromDays(365);
+        public static TimeSpan User = TimeSpan.FromDays(365);
+        public static TimeSpan Users = TimeSpan.FromMinutes(30);
+        public static TimeSpan UserSubscribers = TimeSpan.FromDays(365);
+        public static TimeSpan UserSubscriptions = TimeSpan.FromDays(365);
     }
 }

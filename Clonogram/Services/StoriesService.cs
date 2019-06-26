@@ -7,6 +7,7 @@ using Clonogram.Repositories;
 using Clonogram.ViewModels;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Clonogram.Services
 {
@@ -16,13 +17,15 @@ namespace Clonogram.Services
         private readonly IAmazonS3Repository _amazonS3Repository;
         private readonly IFeedService _feedService;
         private readonly IMapper _mapper;
+        private readonly IMemoryCache _memoryCache;
 
-        public StoriesService(IAmazonS3Repository amazonS3Repository, IMapper mapper, IStoriesRepository storiesRepository, IFeedService feedService)
+        public StoriesService(IAmazonS3Repository amazonS3Repository, IMapper mapper, IStoriesRepository storiesRepository, IFeedService feedService, IMemoryCache memoryCache)
         {
             _amazonS3Repository = amazonS3Repository;
             _mapper = mapper;
             _storiesRepository = storiesRepository;
             _feedService = feedService;
+            _memoryCache = memoryCache;
         }
 
         public async Task Upload(IFormFile photo, StoryView storyView)
@@ -37,6 +40,7 @@ namespace Clonogram.Services
             await Task.WhenAll(_storiesRepository.Upload(storyModel),
                 _feedService.AddStoryToFeed(storyModel.UserId, storyModel), 
                 _amazonS3Repository.Upload(photo, storyId.ToString()));
+            _memoryCache.Set(storyId, storyModel, Cache.Story);
         }
 
         public async Task Delete(Guid userId, Guid storyId)
@@ -48,11 +52,17 @@ namespace Clonogram.Services
             await Task.WhenAll(_amazonS3Repository.Delete(storyId.ToString()), 
                 _storiesRepository.Delete(storyId),
                 _feedService.DeleteStoryFromFeed(userId, storyDB));
+            _memoryCache.Remove(storyId);
         }
 
         public async Task<StoryView> GetById(Guid id)
         {
-            var story = await _storiesRepository.GetById(id);
+            var story = await _memoryCache.GetOrCreateAsync(id, async x =>
+            {
+                x.AbsoluteExpirationRelativeToNow = Cache.Story;
+                return await _storiesRepository.GetById(id);
+            });
+
             var storyView = _mapper.Map<StoryView>(story);
             return storyView;
         }
