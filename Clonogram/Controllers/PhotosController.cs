@@ -36,9 +36,17 @@ namespace Clonogram.Controllers
 
         public async Task<IActionResult> GetLikesCount(string id)
         {
-            var guid = Guid.Parse(id);
-            var likesCount = await _photosService.GetLikesCount(guid);
-            return Ok(likesCount);
+            try
+            {
+                var guid = Guid.Parse(id);
+                var userId = Guid.Parse(HttpContext.User.Identity.Name);
+                var likesCount = await _photosService.GetLikesCount(guid, userId);
+                return Ok(likesCount);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost]

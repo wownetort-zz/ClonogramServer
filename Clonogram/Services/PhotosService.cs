@@ -93,8 +93,14 @@ namespace Clonogram.Services
             await _photosRepository.RemoveLike(userId, photoId);
         }
 
-        public async Task<int> GetLikesCount(Guid photoId)
+        public async Task<int> GetLikesCount(Guid photoId, Guid userId)
         {
+            var photo = await _photosRepository.GetById(photoId);
+            if (photo.UserId != userId)
+            {
+                throw new ArgumentException("Photo doesn't belong to user");
+            }
+
             return await _photosRepository.GetLikesCount(photoId);
         }
     }

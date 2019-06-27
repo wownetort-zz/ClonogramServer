@@ -168,7 +168,7 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_photo_id", photoId);
             cmd.Parameters.AddWithValue("p_user_id", userId);
 
-            await cmd.ExecuteNonQueryAsync();
+            if(await cmd.ExecuteNonQueryAsync() == 0) return;
 
             var likesKey = $"{photoId} Likes";
             if (_memoryCache.TryGetValue(likesKey, out int likes))
@@ -191,7 +191,7 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_photo_id", photoId);
             cmd.Parameters.AddWithValue("p_user_id", userId);
 
-            await cmd.ExecuteNonQueryAsync();
+            if (await cmd.ExecuteNonQueryAsync() == 0) return;
 
             var likesKey = $"{photoId} Likes";
             if (_memoryCache.TryGetValue(likesKey, out int likes))

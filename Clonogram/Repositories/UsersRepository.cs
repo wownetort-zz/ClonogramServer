@@ -157,7 +157,7 @@ namespace Clonogram.Repositories
             {
                 Connection = conn,
                 CommandText =
-                    @"select id, avatar_path, username, email, password_hash, password_salt, first_name, last_name, description from users where id = @p_id"
+                    @"select id, avatar_path, username, email, password_hash, password_salt, first_name, last_name, description from users where id = @p_id and deleted = false"
             };
             cmd.Parameters.AddWithValue("p_id", id);
             var reader = await cmd.ExecuteReaderAsync();
@@ -202,7 +202,7 @@ namespace Clonogram.Repositories
                 Connection = conn,
                 CommandText =
                     @"update users set username = @p_username, avatar_path = @p_avatar_path, email = @p_email, password_hash = @p_password_hash, password_salt = @p_password_salt, 
-                        first_name = @p_first_name, last_name = @p_last_name, description = @p_description, date_updated = @p_date_updated
+                        first_name = @p_first_name, last_name = @p_last_name, description = @p_description, date_updated = @p_date_updated, deleted = false
                         where id = @p_id"
             };
             cmd.Parameters.AddWithValue("p_id", user.Id);
