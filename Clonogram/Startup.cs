@@ -2,8 +2,10 @@
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using Clonogram.Helpers;
 using Clonogram.Repositories;
 using Clonogram.Services;
+using Clonogram.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -27,12 +29,20 @@ namespace Clonogram
         {
             services.AddCors();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            services.AddAutoMapper();
             services.AddMemoryCache();
 
-            ConfigureJWT(services);
-
+            AddMapper(services);
+            ConfigureSettings(services);
             AddServices(services);
+            AddRepositories(services);
+            ConfigureJWT(services);
+        }
+
+        private static void AddMapper(IServiceCollection services)
+        {
+            var mappingConfig = new MapperConfiguration(mc => { mc.AddProfile(new AutoMapperProfile()); });
+            var mapper = mappingConfig.CreateMapper();
+            services.AddSingleton(mapper);
         }
 
         public void AddServices(IServiceCollection services)
@@ -45,7 +55,10 @@ namespace Clonogram
             services.AddSingleton<IHashtagsService, HashtagsService>();
             services.AddSingleton<IStoriesService, StoriesService>();
             services.AddSingleton<IFeedService, FeedService>();
+        }
 
+        public void AddRepositories(IServiceCollection services)
+        {
             services.AddSingleton<IUsersRepository, UsersRepository>();
             services.AddSingleton<IPhotosRepository, PhotosRepository>();
             services.AddSingleton<ICommentsRepository, CommentsRepository>();
@@ -57,7 +70,7 @@ namespace Clonogram
 
         public void ConfigureJWT(IServiceCollection services)
         {
-            var key = Encoding.ASCII.GetBytes(Constants.Secret);
+            var key = Encoding.ASCII.GetBytes(Configuration.GetSection(nameof(JWTSettings)).GetSection("Secret").Value);
             services.AddAuthentication(x =>
                 {
                     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -92,11 +105,13 @@ namespace Clonogram
                 });
         }
 
-//        public void ConfigureSettings(IServiceCollection services)
-//        {
-//            services.Configure<ELKSettings>(Configuration.GetSection("ELK"));
-//            services.Configure<MailSettings>(Configuration.GetSection("Mail"));
-//        }
+        public void ConfigureSettings(IServiceCollection services)
+        {
+            services.Configure<CacheSettings>(Configuration.GetSection(nameof(CacheSettings)));
+            services.Configure<JWTSettings>(Configuration.GetSection(nameof(JWTSettings)));
+            services.Configure<S3Settings>(Configuration.GetSection(nameof(S3Settings)));
+            services.Configure<ConnectionStrings>(Configuration.GetSection(nameof(ConnectionStrings)));
+        }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {

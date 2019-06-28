@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Clonogram.Settings;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using Npgsql;
 
 namespace Clonogram.Repositories
@@ -9,24 +11,28 @@ namespace Clonogram.Repositories
     public class HashtagsRepository : IHashtagsRepository
     {
         private readonly IMemoryCache _memoryCache;
+        private readonly CacheSettings _cacheSettings;
+        private readonly ConnectionStrings _connectionStrings;
 
-        public HashtagsRepository(IMemoryCache memoryCache)
+        public HashtagsRepository(IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOptions<ConnectionStrings> connectionStrings)
         {
             _memoryCache = memoryCache;
+            _connectionStrings = connectionStrings.Value;
+            _cacheSettings = cacheSettings.Value;
         }
 
         public async Task<List<Guid>> GetPhotos(Guid hashtagId)
         {
             return await _memoryCache.GetOrCreateAsync(hashtagId, async x =>
             {
-                x.AbsoluteExpirationRelativeToNow = Cache.Hashtags;
+                x.AbsoluteExpirationRelativeToNow = _cacheSettings.Hashtags;
                 return await GetPhotosByHashtag(hashtagId);
             });
         }
 
-        private static async Task<List<Guid>> GetPhotosByHashtag(Guid hashtagId)
+        private async Task<List<Guid>> GetPhotosByHashtag(Guid hashtagId)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -47,7 +53,7 @@ namespace Clonogram.Repositories
 
         public async Task<Guid?> GetId(string hashtag)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -63,7 +69,7 @@ namespace Clonogram.Repositories
 
         public async Task Add(string hashtag, Guid id)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -79,7 +85,7 @@ namespace Clonogram.Repositories
 
         public async Task AddToPhoto(Guid photoId, Guid hashtagId)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -95,7 +101,7 @@ namespace Clonogram.Repositories
 
         public async Task RemoveAll(Guid photoId)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Clonogram.Helpers;
 using Clonogram.Models;
+using Clonogram.Settings;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using Npgsql;
 
 namespace Clonogram.Repositories
@@ -11,24 +13,28 @@ namespace Clonogram.Repositories
     public class PhotosRepository : IPhotosRepository
     {
         private readonly IMemoryCache _memoryCache;
+        private readonly CacheSettings _cacheSettings;
+        private readonly ConnectionStrings _connectionStrings;
 
-        public PhotosRepository(IMemoryCache memoryCache)
+        public PhotosRepository(IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOptions<ConnectionStrings> connectionStrings)
         {
             _memoryCache = memoryCache;
+            _connectionStrings = connectionStrings.Value;
+            _cacheSettings = cacheSettings.Value;
         }
 
         public async Task<Photo> GetById(Guid id)
         {
             return await _memoryCache.GetOrCreateAsync(id, async x =>
             {
-                x.AbsoluteExpirationRelativeToNow = Cache.Photo;
+                x.AbsoluteExpirationRelativeToNow = _cacheSettings.Photo;
                 return await GetPhotoById(id);
             });
         }
 
-        private static async Task<Photo> GetPhotoById(Guid id)
+        private async Task<Photo> GetPhotoById(Guid id)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -47,14 +53,14 @@ namespace Clonogram.Repositories
         {
             return await _memoryCache.GetOrCreateAsync($"{userId} Photos", async x =>
             {
-                x.AbsoluteExpirationRelativeToNow = Cache.UserPhotos;
+                x.AbsoluteExpirationRelativeToNow = _cacheSettings.UserPhotos;
                 return await GetAllUserPhotos(userId);
             });
         }
 
-        private static async Task<List<RedisPhoto>> GetAllUserPhotos(Guid userId)
+        private async Task<List<RedisPhoto>> GetAllUserPhotos(Guid userId)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -81,7 +87,7 @@ namespace Clonogram.Repositories
 
         public async Task Upload(Photo photo)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -101,7 +107,7 @@ namespace Clonogram.Repositories
 
             await cmd.ExecuteNonQueryAsync();
 
-            _memoryCache.Set(photo.Id, photo, Cache.Photo);
+            _memoryCache.Set(photo.Id, photo, _cacheSettings.Photo);
 
             var photosKey = $"{photo.UserId} Photos";
             if (_memoryCache.TryGetValue(photosKey, out List<RedisPhoto> photos))
@@ -111,13 +117,13 @@ namespace Clonogram.Repositories
                     Id = photo.Id,
                     Time = photo.DateCreated
                 });
-                _memoryCache.Set(photosKey, photos, Cache.UserPhotos);
+                _memoryCache.Set(photosKey, photos, _cacheSettings.UserPhotos);
             }
         }
 
         public async Task Update(Photo photo)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -130,12 +136,12 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_date_updated", DateTime.Now);
 
             await cmd.ExecuteNonQueryAsync();
-            _memoryCache.Set(photo.Id, photo, Cache.Photo);
+            _memoryCache.Set(photo.Id, photo, _cacheSettings.Photo);
         }
 
         public async Task Delete(Photo photo)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -151,13 +157,13 @@ namespace Clonogram.Repositories
             if (_memoryCache.TryGetValue(photosKey, out List<RedisPhoto> photos))
             {
                 photos.RemoveAt(photos.FindIndex(x => x.Id == photo.Id));
-                _memoryCache.Set(photosKey, photos, Cache.UserPhotos);
+                _memoryCache.Set(photosKey, photos, _cacheSettings.UserPhotos);
             }
         }
 
         public async Task Like(Guid userId, Guid photoId)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -174,13 +180,13 @@ namespace Clonogram.Repositories
             if (_memoryCache.TryGetValue(likesKey, out int likes))
             {
                 likes++;
-                _memoryCache.Set(likesKey, likes, Cache.Likes);
+                _memoryCache.Set(likesKey, likes, _cacheSettings.Likes);
             }
         }
 
         public async Task RemoveLike(Guid userId, Guid photoId)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -197,7 +203,7 @@ namespace Clonogram.Repositories
             if (_memoryCache.TryGetValue(likesKey, out int likes))
             {
                 likes--;
-                _memoryCache.Set(likesKey, likes, Cache.Likes);
+                _memoryCache.Set(likesKey, likes, _cacheSettings.Likes);
             }
         }
 
@@ -205,14 +211,14 @@ namespace Clonogram.Repositories
         {
             return await _memoryCache.GetOrCreateAsync($"{photoId} Likes", async x =>
             {
-                x.AbsoluteExpirationRelativeToNow = Cache.Likes;
+                x.AbsoluteExpirationRelativeToNow = _cacheSettings.Likes;
                 return await GetPhotoLikesCount(photoId);
             });
         }
 
-        private static async Task<int> GetPhotoLikesCount(Guid photoId)
+        private async Task<int> GetPhotoLikesCount(Guid photoId)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {

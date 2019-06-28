@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Clonogram.Helpers;
 using Clonogram.Models;
+using Clonogram.Settings;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using Npgsql;
 
 namespace Clonogram.Repositories
@@ -11,24 +13,28 @@ namespace Clonogram.Repositories
     public class StoriesRepository : IStoriesRepository
     {
         private readonly IMemoryCache _memoryCache;
+        private readonly CacheSettings _cacheSettings;
+        private readonly ConnectionStrings _connectionStrings;
 
-        public StoriesRepository(IMemoryCache memoryCache)
+        public StoriesRepository(IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOptions<ConnectionStrings> connectionStrings)
         {
             _memoryCache = memoryCache;
+            _connectionStrings = connectionStrings.Value;
+            _cacheSettings = cacheSettings.Value;
         }
 
         public async Task<Story> GetById(Guid id)
         {
             return await _memoryCache.GetOrCreateAsync(id, async x =>
             {
-                x.AbsoluteExpirationRelativeToNow = Cache.Story;
+                x.AbsoluteExpirationRelativeToNow = _cacheSettings.Story;
                 return await GetStoryById(id);
             });
         }
 
-        private static async Task<Story> GetStoryById(Guid id)
+        private async Task<Story> GetStoryById(Guid id)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -45,7 +51,7 @@ namespace Clonogram.Repositories
 
         public async Task<List<Guid>> GetAllStories(Guid userId)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -66,7 +72,7 @@ namespace Clonogram.Repositories
 
         public async Task Upload(Story story)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {
@@ -82,12 +88,12 @@ namespace Clonogram.Repositories
             cmd.Parameters.AddWithValue("p_date_created", story.DateCreated);
 
             await cmd.ExecuteNonQueryAsync();
-            _memoryCache.Set(story.Id, story, Cache.Story);
+            _memoryCache.Set(story.Id, story, _cacheSettings.Story);
         }
 
         public async Task Delete(Guid id)
         {
-            using var conn = new NpgsqlConnection(Constants.PostgresConnectionString);
+            using var conn = new NpgsqlConnection(_connectionStrings.Postgres);
             conn.Open();
             using var cmd = new NpgsqlCommand
             {

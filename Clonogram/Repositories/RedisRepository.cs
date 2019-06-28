@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Clonogram.Models;
+using Clonogram.Settings;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 
@@ -11,9 +13,9 @@ namespace Clonogram.Repositories
     public class RedisRepository : IRedisRepository
     {
         private readonly ConnectionMultiplexer _connection;
-        public RedisRepository()
+        public RedisRepository(IOptions<ConnectionStrings> connectionStrings)
         {
-            _connection = ConnectionMultiplexer.Connect(Constants.RedisConnectionString);
+            _connection = ConnectionMultiplexer.Connect(connectionStrings.Value.Redis);
         }
 
         public async Task AddFeedPhoto(Guid userId, RedisPhoto photo)

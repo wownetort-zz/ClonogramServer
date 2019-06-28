@@ -4,9 +4,11 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Clonogram.Models;
 using Clonogram.Repositories;
+using Clonogram.Settings;
 using Clonogram.ViewModels;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 namespace Clonogram.Services
 {
@@ -16,13 +18,15 @@ namespace Clonogram.Services
         private readonly IAmazonS3Repository _amazonS3Repository;
         private readonly IFeedService _feedService;
         private readonly IMapper _mapper;
+        private readonly S3Settings _s3Settings;
 
-        public StoriesService(IAmazonS3Repository amazonS3Repository, IMapper mapper, IStoriesRepository storiesRepository, IFeedService feedService)
+        public StoriesService(IAmazonS3Repository amazonS3Repository, IMapper mapper, IStoriesRepository storiesRepository, IFeedService feedService, IOptions<S3Settings> s3Settings)
         {
             _amazonS3Repository = amazonS3Repository;
             _mapper = mapper;
             _storiesRepository = storiesRepository;
             _feedService = feedService;
+            _s3Settings = s3Settings.Value;
         }
 
         public async Task Upload(IFormFile photo, StoryView storyView)
@@ -31,7 +35,7 @@ namespace Clonogram.Services
 
             var storyModel = _mapper.Map<Story>(storyView);
             storyModel.Id = storyId;
-            storyModel.ImagePath = $"{Constants.ServiceURL}/{Constants.BucketName}/{storyId.ToString()}";
+            storyModel.ImagePath = $"{_s3Settings.ServiceURL}/{_s3Settings.BucketName}/{storyId.ToString()}";
             storyModel.DateCreated = DateTime.Now;
 
             await Task.WhenAll(_storiesRepository.Upload(storyModel),

@@ -4,9 +4,11 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Clonogram.Models;
 using Clonogram.Repositories;
+using Clonogram.Settings;
 using Clonogram.ViewModels;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 namespace Clonogram.Services
 {
@@ -17,14 +19,16 @@ namespace Clonogram.Services
         private readonly IHashtagsService _hashtagsService;
         private readonly IFeedService _feedService;
         private readonly IMapper _mapper;
+        private readonly S3Settings _s3Settings;
 
-        public PhotosService(IPhotosRepository photosRepository, IAmazonS3Repository amazonS3Repository, IHashtagsService hashtagsService, IMapper mapper, IFeedService feedService)
+        public PhotosService(IPhotosRepository photosRepository, IAmazonS3Repository amazonS3Repository, IHashtagsService hashtagsService, IMapper mapper, IFeedService feedService, IOptions<S3Settings> s3Settings)
         {
             _photosRepository = photosRepository;
             _amazonS3Repository = amazonS3Repository;
             _hashtagsService = hashtagsService;
             _mapper = mapper;
             _feedService = feedService;
+            _s3Settings = s3Settings.Value;
         }
 
         public async Task Upload(IFormFile photo, PhotoView photoView)
@@ -34,7 +38,7 @@ namespace Clonogram.Services
 
             var photoModel = _mapper.Map<Photo>(photoView);
             photoModel.Id = photoId;
-            photoModel.ImagePath = $"{Constants.ServiceURL}/{Constants.BucketName}/{photoId.ToString()}";
+            photoModel.ImagePath = $"{_s3Settings.ServiceURL}/{_s3Settings.BucketName}/{photoId.ToString()}";
             photoModel.DateCreated = DateTime.Now;
 
             await Task.WhenAll(_photosRepository.Upload(photoModel),

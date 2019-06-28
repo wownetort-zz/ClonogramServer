@@ -4,9 +4,11 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Clonogram.Models;
 using Clonogram.Repositories;
+using Clonogram.Settings;
 using Clonogram.ViewModels;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 namespace Clonogram.Services
 {
@@ -17,14 +19,16 @@ namespace Clonogram.Services
         private readonly IFeedService _feedService;
         private readonly IAmazonS3Repository _amazonS3Repository;
         private readonly IMapper _mapper;
+        private readonly S3Settings _s3Settings;
 
-        public UsersService(IUsersRepository usersRepository, ICryptographyService cryptographyService, IMapper mapper, IAmazonS3Repository amazonS3Repository, IFeedService feedService)
+        public UsersService(IUsersRepository usersRepository, ICryptographyService cryptographyService, IMapper mapper, IAmazonS3Repository amazonS3Repository, IFeedService feedService, IOptions<S3Settings> s3Settings)
         {
             _usersRepository = usersRepository;
             _cryptographyService = cryptographyService;
             _mapper = mapper;
             _amazonS3Repository = amazonS3Repository;
             _feedService = feedService;
+            _s3Settings = s3Settings.Value;
         }
 
         public async Task<UserView> Authenticate(string username, string password)
@@ -86,7 +90,7 @@ namespace Clonogram.Services
             if (avatar != null)
             {
                 await _amazonS3Repository.Upload(avatar, userView.Id);
-                user.AvatarPath = $"{Constants.ServiceURL}/{Constants.BucketName}/{userView.Id}";
+                user.AvatarPath = $"{_s3Settings.ServiceURL}/{_s3Settings.BucketName}/{userView.Id}";
             }
 
             await _usersRepository.AddUser(user);
@@ -128,7 +132,7 @@ namespace Clonogram.Services
                     await _amazonS3Repository.Delete(userView.Id);
                 }
                 await _amazonS3Repository.Upload(avatar, userView.Id);
-                userDB.AvatarPath = $"{Constants.ServiceURL}/{Constants.BucketName}/{userView.Id}";
+                userDB.AvatarPath = $"{_s3Settings.ServiceURL}/{_s3Settings.BucketName}/{userView.Id}";
             }
 
             await _usersRepository.UpdateUser(userDB);
